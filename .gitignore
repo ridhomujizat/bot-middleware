@@ -1,0 +1,32 @@
+# Environment variables
+.env
+
+# Dependency directories
+vendor/
+
+# Go modules
+go.sum
+
+# Build and output directories
+/bin
+/obj
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# Swagger files (optional, if you don't want to track them)
+*.swagger
+*.yaml
+*.json
+docs/
+
+# Docker
+docker-compose.yml
+Dockerfile
+
+# IDE specific files
+.vscode/
+.idea/
+
