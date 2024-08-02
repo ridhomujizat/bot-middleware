@@ -4,6 +4,7 @@ import (
 	"bot-middleware/config"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/messaging/rabbit"
+	"bot-middleware/internal/pkg/repository/postgre"
 	"bot-middleware/internal/pkg/util"
 	webhookTole "bot-middleware/internal/webhook/tole"
 	workerTole "bot-middleware/internal/worker/tole"
@@ -12,10 +13,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"bot-middleware/docs"
+	// "bot-middleware/docs"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/swag/example/basic/docs"
 )
 
 // @title Bot Middleware API
@@ -31,6 +33,9 @@ func main() {
 	if err != nil {
 		util.HandleAppError(err, "main", "loadConfig", true)
 	}
+
+	// Init DB
+	initDB()
 
 	// Init RabbitMQ
 	rabbitPublisher, rabbitSubscriber := initRabbitMQ(cfg)
@@ -93,6 +98,15 @@ func initRouter(messagingGeneral messaging.MessagingGeneral) *gin.Engine {
 	webhookTole.InitRouterTole(messagingGeneral, routeGroup)
 
 	return router
+}
+
+func initDB() {
+
+	_, err := postgre.GetDB()
+	if err != nil {
+		util.HandleAppError(err, "initDB", "NewConnectionDB", true)
+		return
+	}
 }
 
 func initSubscriber(messagingGeneral messaging.MessagingGeneral) {
