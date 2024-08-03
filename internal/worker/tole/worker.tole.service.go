@@ -11,23 +11,21 @@ type ToleService struct {
 	messagingGeneral messaging.MessagingGeneral
 }
 
-func NewToleService(messagingGeneral messaging.MessagingGeneral, queueName string) {
+func NewToleService(messagingGeneral messaging.MessagingGeneral, exchange, routingKey, queueName string, allowNonJsonMessages bool) {
 	service := &ToleService{
 		messagingGeneral: messagingGeneral,
 	}
-	service.subscribe(queueName)
+	service.subscribe(exchange, routingKey, queueName, allowNonJsonMessages)
 }
 
-func (t *ToleService) subscribe(queueName string) {
-	subscriber := t.messagingGeneral.GetSubscriber()
-
+func (t *ToleService) subscribe(exchange, routingKey, queueName string, allowNonJsonMessages bool) {
 	handleFunc := func(body []byte) {
 		pterm.Info.Printfln("Received a message: %s", body)
 		// Business Logic
 	}
 
 	go func() {
-		if err := subscriber.Subscribe(queueName, handleFunc); err != nil {
+		if err := t.messagingGeneral.Subscribe(exchange, routingKey, queueName, allowNonJsonMessages, handleFunc); err != nil {
 			util.HandleAppError(err, "subscribe", "Subscribe", true)
 		}
 	}()
