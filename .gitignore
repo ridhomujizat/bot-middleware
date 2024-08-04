@@ -5,7 +5,7 @@
 vendor/
 
 # Go modules
-go.sum
+# go.sum
 
 # Build and output directories
 /bin
