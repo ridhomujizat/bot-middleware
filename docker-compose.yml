@@ -45,6 +45,15 @@ services:
       - .:/go/src/app
     working_dir: /go/src/app
     command: ["go", "run", "main.go"]
+    environment:
+      DB_HOST: postgres
+      DB_USERNAME: postgres
+      DB_PASSWORD: 1Nfomedi@2022
+      DB_NAME: libra_dev
+      DB_PORT: 5432
+      RABBIT_URI: amqp://admin:rahmaridho@rabbitmq:5672/
+      PORT: 8100
+      TEST_PORT: onx_dev
     ports:
       - "${PORT}:${PORT}"  # Map container port 8080 to host port 8080
     depends_on:

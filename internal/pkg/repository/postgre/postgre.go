@@ -15,7 +15,7 @@ type DB struct {
 
 func getDSN() string {
 
-	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s",
 		util.GodotEnv("DB_HOST"),
 		util.GodotEnv("DB_USERNAME"),
 		util.GodotEnv("DB_PASSWORD"),
