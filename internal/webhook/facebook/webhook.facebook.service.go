@@ -1,4 +1,4 @@
-package webhookTelegram
+package webhookFacebook
 
 import (
 	"bot-middleware/internal/pkg/messaging"
@@ -10,19 +10,19 @@ import (
 	"github.com/pterm/pterm"
 )
 
-type TelegramService struct {
+type FacebookService struct {
 	messagingGeneral messaging.MessagingGeneral
 }
 
-func NewTelegramService(messagingGeneral messaging.MessagingGeneral) *TelegramService {
-	return &TelegramService{
+func NewFacebookService(messagingGeneral messaging.MessagingGeneral) *FacebookService {
+	return &FacebookService{
 		messagingGeneral: messagingGeneral,
 	}
 }
 
-func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload webhook.IncomingDTO) (interface{}, error) {
+func (f *FacebookService) Incoming(params webhook.ParamsDTO, payload webhook.IncomingDTO) (interface{}, error) {
 
-	queueName := fmt.Sprintf("%s:%s:%s:%s", params.Omnichannel, params.TenantId, util.GodotEnv("TELEGRAM_QUEUE_NAME"), payload.Account)
+	queueName := fmt.Sprintf("%s:%s:%s:%s", params.Omnichannel, params.TenantId, util.GodotEnv("FBM_QUEUE_NAME"), payload.Account)
 	pterm.Info.Println("queueName", queueName)
 
 	data := webhook.AttributeDTO{
@@ -32,20 +32,17 @@ func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload webhook.Inc
 		Omnichannel:        params.Omnichannel,
 		TenantId:           params.TenantId,
 		AccountId:          payload.Account,
-		ChannelPlatform:    webhook.OFFICIAL,
-		ChannelSources:     webhook.TELEGRAM,
-		ChannelID:          webhook.TELEGRAM_ID,
-		MiddlewareEndpoint: fmt.Sprintf("%s/official/telegram/%s/%s/%s", util.GodotEnv("BASE_URL"), params.Omnichannel, params.TenantId, params.Account),
+		ChannelPlatform:    webhook.SOCIOCONNECT,
+		ChannelSources:     webhook.FBMESSENGER,
+		ChannelID:          webhook.FBMESSENGER_ID,
+		MiddlewareEndpoint: fmt.Sprintf("%s/socioconnect/fbmessenger/%s/%s", util.GodotEnv("BASE_URL"), params.Omnichannel, params.TenantId),
 		DateTimestamp:      time.Unix(int64(payload.Data.Entry[0].Messaging[0].Timestamp/1000), 0).Format("2006-01-02 15:04:05"),
 		CustMessage:        payload.Data.Entry[0].Messaging[0].Message.Text,
 	}
 
 	payload.Additional = data
 
-	pterm.Info.Println("payload", payload)
-	pterm.Info.Println("queueName", queueName)
-
-	err := t.messagingGeneral.Publish(queueName, payload)
+	err := f.messagingGeneral.Publish(queueName, payload)
 	if err != nil {
 		return nil, err
 	}
@@ -53,12 +50,12 @@ func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload webhook.Inc
 	return payload, nil
 }
 
-func (t *TelegramService) Handover(params webhook.ParamsDTO, payload webhook.HandoverDTO) (interface{}, error) {
-	queueName := fmt.Sprintf("%s:%s:%s:%s:handover", params.Omnichannel, params.TenantId, util.GodotEnv("TELEGRAM_QUEUE_NAME"), payload.AccountID)
+func (f *FacebookService) Handover(params webhook.ParamsDTO, payload webhook.HandoverDTO) (interface{}, error) {
+	queueName := fmt.Sprintf("%s:%s:%s:%s:handover", params.Omnichannel, params.TenantId, util.GodotEnv("FBM_QUEUE_NAME"), payload.AccountID)
 	pterm.Info.Println("queueName", queueName)
 
 	additional := map[string]webhook.ChannelPlatform{
-		"channel_platform": webhook.OFFICIAL,
+		"channel_platform": webhook.SOCIOCONNECT,
 	}
 
 	data := map[string]interface{}{
@@ -69,7 +66,7 @@ func (t *TelegramService) Handover(params webhook.ParamsDTO, payload webhook.Han
 
 	pterm.Info.Println("data handover telegram", data)
 
-	err := t.messagingGeneral.Publish(queueName, data)
+	err := f.messagingGeneral.Publish(queueName, data)
 	if err != nil {
 		return nil, err
 	}
@@ -77,12 +74,12 @@ func (t *TelegramService) Handover(params webhook.ParamsDTO, payload webhook.Han
 	return data, nil
 }
 
-func (t *TelegramService) End(params webhook.ParamsDTO, payload webhook.EndDTO) (interface{}, error) {
-	queueName := fmt.Sprintf("%s:%s:%s:%s:end", params.Omnichannel, params.TenantId, util.GodotEnv("TELEGRAM_QUEUE_NAME"), payload.AccountID)
+func (f *FacebookService) End(params webhook.ParamsDTO, payload webhook.EndDTO) (interface{}, error) {
+	queueName := fmt.Sprintf("%s:%s:%s:%s:end", params.Omnichannel, params.TenantId, util.GodotEnv("FBM_QUEUE_NAME"), payload.AccountID)
 	pterm.Info.Println("queueName", queueName)
 
 	additional := map[string]webhook.ChannelPlatform{
-		"channel_platform": webhook.OFFICIAL,
+		"channel_platform": webhook.SOCIOCONNECT,
 	}
 
 	data := map[string]interface{}{
@@ -93,7 +90,7 @@ func (t *TelegramService) End(params webhook.ParamsDTO, payload webhook.EndDTO) 
 
 	pterm.Info.Println("data====>", data)
 
-	err := t.messagingGeneral.Publish(queueName, data)
+	err := f.messagingGeneral.Publish(queueName, data)
 	if err != nil {
 		return nil, err
 	}

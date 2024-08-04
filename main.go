@@ -5,6 +5,7 @@ import (
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/messaging/rabbit"
 	"bot-middleware/internal/pkg/util"
+	webhookFacebook "bot-middleware/internal/webhook/facebook"
 	webhookTelegram "bot-middleware/internal/webhook/telegram"
 	webhookTole "bot-middleware/internal/webhook/tole"
 	workerTole "bot-middleware/internal/worker/tole"
@@ -91,12 +92,14 @@ func initRouter(messagingGeneral messaging.MessagingGeneral) *gin.Engine {
 
 	// Initialize API routes
 	routeGroup := router.Group("/api/v1")
+
 	webhookTole.InitRouterTole(messagingGeneral, routeGroup)
 	webhookTelegram.InitRouterTelegram(messagingGeneral, routeGroup)
+	webhookFacebook.InitRouterFacebook(messagingGeneral, routeGroup)
 
 	return router
 }
 
 func initSubscriber(messagingGeneral messaging.MessagingGeneral) {
-	workerTole.NewToleService(messagingGeneral, "", "", "incoming:tole", false)
+	workerTole.NewToleService(messagingGeneral, "exchange", "routingKey", "incoming:tole", false)
 }
