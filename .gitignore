@@ -1,5 +1,5 @@
 # Environment variables
-.env
+# .env
 
 # Dependency directories
 vendor/
@@ -23,8 +23,8 @@ go.sum
 docs/
 
 # Docker
-docker-compose.yml
-Dockerfile
+# docker-compose.yml
+# Dockerfile
 
 # IDE specific files
 .vscode/
