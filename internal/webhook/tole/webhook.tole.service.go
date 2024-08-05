@@ -15,6 +15,5 @@ func NewToleService(messagingGeneral messaging.MessagingGeneral) *ToleService {
 }
 
 func (t *ToleService) Send(queueName string, message interface{}) error {
-	publisher := t.messagingGeneral.GetPublisher()
-	return publisher.Publish(queueName+":tole", message)
+	return t.messagingGeneral.Publish(queueName+":tole", message)
 }
