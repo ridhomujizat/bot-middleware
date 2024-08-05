@@ -20,7 +20,7 @@ vendor/
 *.swagger
 *.yaml
 *.json
-docs/
+# docs/
 
 # Docker
 # docker-compose.yml

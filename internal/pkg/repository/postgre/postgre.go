@@ -7,11 +7,8 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	gormLogger "gorm.io/gorm/logger"
+	"gorm.io/gorm/schema"
 )
-
-type DB struct {
-	Master *gorm.DB
-}
 
 func getDSN() string {
 
@@ -27,6 +24,9 @@ func getDSN() string {
 func initDBMaster() (*gorm.DB, error) {
 	gormDB, err := gorm.Open(postgres.Open(getDSN()), &gorm.Config{
 		Logger: gormLogger.Default.LogMode(gormLogger.Silent),
+		NamingStrategy: schema.NamingStrategy{
+			SingularTable: true,
+		},
 	})
 	if err != nil {
 		util.HandleAppError(err, "initDBMaster", "connectionMasterDB", true)
@@ -38,13 +38,11 @@ func initDBMaster() (*gorm.DB, error) {
 	return gormDB, nil
 }
 
-func GetDB() (*DB, error) {
-	var connection DB
-	master, err := initDBMaster()
+func GetDB() (*gorm.DB, error) {
+	db, err := initDBMaster()
 	if err != nil {
-		return &connection, err
+		return db, err
 	}
-	connection.Master = master
 
-	return &connection, nil
+	return db, nil
 }

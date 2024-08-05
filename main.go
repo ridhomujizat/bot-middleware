@@ -2,22 +2,25 @@ package main
 
 import (
 	"bot-middleware/config"
+	"bot-middleware/internal/application"
+	appAccount "bot-middleware/internal/application/account"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/messaging/rabbit"
 	"bot-middleware/internal/pkg/repository/postgre"
 	"bot-middleware/internal/pkg/util"
-	webhookTole "bot-middleware/internal/webhook/tole"
-	workerTole "bot-middleware/internal/worker/tole"
 	"errors"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
 
-	// "bot-middleware/docs"
+	"bot-middleware/docs"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/swaggo/swag/example/basic/docs"
+
+	webHookTelegram "bot-middleware/internal/webhook/telegram"
+	webhookTole "bot-middleware/internal/webhook/tole"
+	workerTole "bot-middleware/internal/worker/tole"
 )
 
 // @title Bot Middleware API
@@ -35,7 +38,7 @@ func main() {
 	}
 
 	// Init DB
-	initDB()
+	applicationService := initDB()
 
 	// Init RabbitMQ
 	rabbitPublisher, rabbitSubscriber := initRabbitMQ(cfg)
@@ -47,7 +50,7 @@ func main() {
 	initSubscriber(messagingService)
 
 	// Init Router
-	router := initRouter(messagingService)
+	router := initRouter(messagingService, applicationService)
 
 	port := util.GodotEnv("PORT")
 	if port == "" {
@@ -87,7 +90,7 @@ func initRabbitMQ(cfg config.RabbitMQConfig) (*rabbit.RabbitMQPublisher, *rabbit
 	return rabbitPublisher, rabbitSubscriber
 }
 
-func initRouter(messagingGeneral messaging.MessagingGeneral) *gin.Engine {
+func initRouter(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services) *gin.Engine {
 	router := gin.Default()
 
 	// Add Swagger route
@@ -96,17 +99,24 @@ func initRouter(messagingGeneral messaging.MessagingGeneral) *gin.Engine {
 	// Initialize API routes
 	routeGroup := router.Group("/api/v1")
 	webhookTole.InitRouterTole(messagingGeneral, routeGroup)
+	webHookTelegram.InitRouterTelegram(messagingGeneral, routeGroup, applicationService)
 
 	return router
 }
 
-func initDB() {
-
-	_, err := postgre.GetDB()
+func initDB() *application.Services {
+	db, err := postgre.GetDB()
 	if err != nil {
-		util.HandleAppError(err, "initDB", "NewConnectionDB", true)
-		return
+		util.HandleAppError(err, "main", "initDB", true)
 	}
+
+	accountService := appAccount.NewAccountService(db)
+
+	services := &application.Services{
+		AccountService: accountService,
+	}
+	return services
+
 }
 
 func initSubscriber(messagingGeneral messaging.MessagingGeneral) {
