@@ -8,6 +8,7 @@ import (
 	webhookFacebook "bot-middleware/internal/webhook/facebook"
 	webhookTelegram "bot-middleware/internal/webhook/telegram"
 	webhookTole "bot-middleware/internal/webhook/tole"
+	webhookWhatsapp "bot-middleware/internal/webhook/whatsapp"
 	workerTole "bot-middleware/internal/worker/tole"
 	"errors"
 	"fmt"
@@ -96,6 +97,7 @@ func initRouter(messagingGeneral messaging.MessagingGeneral) *gin.Engine {
 	webhookTole.InitRouterTole(messagingGeneral, routeGroup)
 	webhookTelegram.InitRouterTelegram(messagingGeneral, routeGroup)
 	webhookFacebook.InitRouterFacebook(messagingGeneral, routeGroup)
+	webhookWhatsapp.InitRouterWhatsapp(messagingGeneral, routeGroup)
 
 	return router
 }

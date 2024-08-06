@@ -20,8 +20,7 @@ func NewFacebookService(messagingGeneral messaging.MessagingGeneral) *FacebookSe
 	}
 }
 
-func (f *FacebookService) Incoming(params webhook.ParamsDTO, payload webhook.IncomingDTO) (interface{}, error) {
-
+func (f *FacebookService) Incoming(params webhook.ParamsDTO, payload IncomingDTO) (interface{}, error) {
 	queueName := fmt.Sprintf("%s:%s:%s:%s", params.Omnichannel, params.TenantId, util.GodotEnv("FBM_QUEUE_NAME"), payload.Account)
 	pterm.Info.Println("queueName", queueName)
 
@@ -64,7 +63,7 @@ func (f *FacebookService) Handover(params webhook.ParamsDTO, payload webhook.Han
 		"additional": additional,
 	}
 
-	pterm.Info.Println("data handover telegram", data)
+	pterm.Info.Println("data handover fbm", data)
 
 	err := f.messagingGeneral.Publish(queueName, data)
 	if err != nil {
@@ -74,7 +73,7 @@ func (f *FacebookService) Handover(params webhook.ParamsDTO, payload webhook.Han
 	return data, nil
 }
 
-func (f *FacebookService) End(params webhook.ParamsDTO, payload webhook.EndDTO) (interface{}, error) {
+func (f *FacebookService) End(params webhook.ParamsDTO, payload EndDTO) (interface{}, error) {
 	queueName := fmt.Sprintf("%s:%s:%s:%s:end", params.Omnichannel, params.TenantId, util.GodotEnv("FBM_QUEUE_NAME"), payload.AccountID)
 	pterm.Info.Println("queueName", queueName)
 
@@ -88,7 +87,7 @@ func (f *FacebookService) End(params webhook.ParamsDTO, payload webhook.EndDTO) 
 		"additional": additional,
 	}
 
-	pterm.Info.Println("data====>", data)
+	pterm.Info.Println("data end fbm", data)
 
 	err := f.messagingGeneral.Publish(queueName, data)
 	if err != nil {

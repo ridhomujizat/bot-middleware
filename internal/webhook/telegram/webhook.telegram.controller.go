@@ -27,7 +27,7 @@ func NewTelegramController(messagingGeneral messaging.MessagingGeneral) *Telegra
 // @Param omnichannel path string true "Omni Channel"
 // @Param tenantId path string true "Tenant"
 // @Param account path string true "Account"
-// @Param payload body webhook.IncomingDTO{} true "Payload"
+// @Param payload body map[string]interface{} true "Payload"
 // @Success 200 {object} util.Responses{data=interface{}}
 // @Failure 500 {object} util.Responses{data=interface{}}
 // @Router /telegram/{botplatform}/{omnichannel}/{tenantId}/{account} [post]
@@ -37,7 +37,7 @@ func (t *TelegramController) Incoming(ctx *gin.Context) {
 	tenantId := ctx.Param("tenantId")
 	account := ctx.Param("account")
 
-	var payload webhook.IncomingDTO
+	var payload map[string]interface{}
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		util.APIResponse(ctx, err.Error(), http.StatusBadRequest, http.MethodPost, nil)
 		return
@@ -131,7 +131,7 @@ func (t *TelegramController) Handover(ctx *gin.Context) {
 // @Param omnichannel path string true "Omni Channel"
 // @Param tenantId path string true "Tenant"
 // @Param account path string true "Account"
-// @Param payload body webhook.EndDTO{} true "Payload"
+// @Param payload body EndDTO{} true "Payload"
 // @Success 200 {object} util.Responses{data=interface{}}
 // @Failure 500 {object} util.Responses{data=interface{}}
 // @Router /telegram/{botplatform}/{omnichannel}/{tenantId}/{account}/end [post]
@@ -141,7 +141,7 @@ func (t *TelegramController) End(ctx *gin.Context) {
 	tenantId := ctx.Param("tenantId")
 	account := ctx.Param("account")
 
-	var payload webhook.EndDTO
+	var payload EndDTO
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		util.APIResponse(ctx, err.Error(), http.StatusBadRequest, http.MethodPost, nil)
 		return

@@ -27,17 +27,17 @@ func NewFacebookController(messagingGeneral messaging.MessagingGeneral) *Faceboo
 // @Param omnichannel path string true "Omni Channel"
 // @Param tenantId path string true "Tenant"
 // @Param account path string true "Account"
-// @Param payload body webhook.IncomingDTO{} true "Payload"
+// @Param payload body IncomingDTO{} true "Payload"
 // @Success 200 {object} util.Responses{data=interface{}}
 // @Failure 500 {object} util.Responses{data=interface{}}
-// @Router /telegram/{botplatform}/{omnichannel}/{tenantId}/{account} [post]
+// @Router /facebook/{botplatform}/{omnichannel}/{tenantId}/{account} [post]
 func (f *FacebookController) Incoming(ctx *gin.Context) {
 	botplatform := ctx.Param("botplatform")
 	omnichannel := ctx.Param("omnichannel")
 	tenantId := ctx.Param("tenantId")
 	account := ctx.Param("account")
 
-	var payload webhook.IncomingDTO
+	var payload IncomingDTO
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		util.APIResponse(ctx, err.Error(), http.StatusBadRequest, http.MethodPost, nil)
 		return
@@ -71,9 +71,9 @@ func (f *FacebookController) Incoming(ctx *gin.Context) {
 }
 
 // Handover godoc
-// @Summary Handover telegram
-// @Description Handover message for channel telegram
-// @Tags telegram
+// @Summary Handover facebook
+// @Description Handover message for channel facebook
+// @Tags facebook
 // @Produce json
 // @Param botplatform path string true "Bot Platform"
 // @Param omnichannel path string true "Omni Channel"
@@ -82,7 +82,7 @@ func (f *FacebookController) Incoming(ctx *gin.Context) {
 // @Param payload body webhook.HandoverDTO{} true "Payload"
 // @Success 200 {object} util.Responses{data=interface{}}
 // @Failure 500 {object} util.Responses{data=interface{}}
-// @Router /telegram/{botplatform}/{omnichannel}/{tenantId}/{account}/handover [post]
+// @Router /facebook/{botplatform}/{omnichannel}/{tenantId}/{account}/handover [post]
 func (f *FacebookController) Handover(ctx *gin.Context) {
 	botplatform := ctx.Param("botplatform")
 	omnichannel := ctx.Param("omnichannel")
@@ -123,25 +123,25 @@ func (f *FacebookController) Handover(ctx *gin.Context) {
 }
 
 // End godoc
-// @Summary End telegram
-// @Description End message for channel telegram
-// @Tags telegram
+// @Summary End facebook
+// @Description End message for channel facebook
+// @Tags facebook
 // @Produce json
 // @Param botplatform path string true "Bot Platform"
 // @Param omnichannel path string true "Omni Channel"
 // @Param tenantId path string true "Tenant"
 // @Param account path string true "Account"
-// @Param payload body webhook.EndDTO{} true "Payload"
+// @Param payload body EndDTO{} true "Payload"
 // @Success 200 {object} util.Responses{data=interface{}}
 // @Failure 500 {object} util.Responses{data=interface{}}
-// @Router /telegram/{botplatform}/{omnichannel}/{tenantId}/{account}/end [post]
+// @Router /facebook/{botplatform}/{omnichannel}/{tenantId}/{account}/end [post]
 func (f *FacebookController) End(ctx *gin.Context) {
 	botplatform := ctx.Param("botplatform")
 	omnichannel := ctx.Param("omnichannel")
 	tenantId := ctx.Param("tenantId")
 	account := ctx.Param("account")
 
-	var payload webhook.EndDTO
+	var payload EndDTO
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		util.APIResponse(ctx, err.Error(), http.StatusBadRequest, http.MethodPost, nil)
 		return
