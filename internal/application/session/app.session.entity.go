@@ -5,7 +5,7 @@ import "time"
 type Session struct {
 	ID           int       `json:"id"`
 	SID          string    `json:"sid"`
-	TenantID     string    `json:"tenantId"`
+	TenantID     string    `json:"tenant_id"`
 	UniqueID     string    `json:"unique_id"`
 	BotPlatform  string    `json:"bot_platform"`
 	State        string    `json:"state"`

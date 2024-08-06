@@ -112,6 +112,10 @@ type AttributeDTO struct {
 	CustName           string          `json:"cust_name" validate:"required"`
 	StreamID           string          `json:"stream_id,omitempty" validate:"omitempty"`
 	CustMessage        interface{}     `json:"cust_message" validate:"omitempty"`
+	BotEndpoint        string          `json:"bot_endpoint" validate:"omitempty,url"`
+	BotAccount         string          `json:"bot_account" validate:"omitempty,string"`
+	SID                string          `json:"sid,omitempty" validate:"omitempty"`
+	NewSession         bool            `json:"new_session,omitempty" validate:"omitempty"`
 }
 
 type IncomingDTO struct {

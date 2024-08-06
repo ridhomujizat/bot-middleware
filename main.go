@@ -4,11 +4,13 @@ import (
 	"bot-middleware/config"
 	"bot-middleware/internal/application"
 	appAccount "bot-middleware/internal/application/account"
+	appBot "bot-middleware/internal/application/bot"
+	appSession "bot-middleware/internal/application/session"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/messaging/rabbit"
 	"bot-middleware/internal/pkg/repository/postgre"
 	"bot-middleware/internal/pkg/util"
-	workerTole "bot-middleware/internal/worker/tole"
+	workerTelegram "bot-middleware/internal/worker/telegram"
 	"errors"
 	"fmt"
 
@@ -47,7 +49,7 @@ func main() {
 	messagingService := messaging.NewMessagingGeneral(rabbitPublisher, rabbitSubscriber)
 
 	// Init Subscriber
-	initSubscriber(messagingService)
+	initSubscriber(messagingService, applicationService)
 
 	// Init Router
 	router := initRouter(messagingService, applicationService)
@@ -110,16 +112,16 @@ func initDB() *application.Services {
 		util.HandleAppError(err, "main", "initDB", true)
 	}
 
-	accountService := appAccount.NewAccountService(db)
-
 	services := &application.Services{
-		AccountService: accountService,
+		AccountService:  appAccount.NewAccountService(db),
+		SessinonService: appSession.NewSessionService(db),
+		BotService:      appBot.NewBotService(db),
 	}
 	return services
 
 }
 
-func initSubscriber(messagingGeneral messaging.MessagingGeneral) {
-	workerTole.NewToleService(messagingGeneral, "exchange", "routingKey", "incoming:tole", false)
-	workerTole.NewToleService(messagingGeneral, "exchange", "routingKey", "onx:onx_dev:telegram:628581158832", false)
+func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services) {
+	workerTelegram.NewTelegramService(messagingGeneral, applicationService, "exchange", "incoming", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false)
+	workerTelegram.NewTelegramService(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false)
 }

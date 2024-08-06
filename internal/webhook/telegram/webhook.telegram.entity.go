@@ -1,6 +1,9 @@
 package webhookTelegram
 
-import "encoding/json"
+import (
+	"bot-middleware/internal/webhook"
+	"encoding/json"
+)
 
 type PayloadQueue struct {
 	Unique_id string `json:"unique_id"`
@@ -23,7 +26,7 @@ type IncomingTelegramDTO struct {
 	UpdateID      int64                  `json:"update_id"`
 	Message       TelegrampayloadMessage `json:"message"`
 	CallbackQuery *CallbackQuery         `json:"callback_query"`
-	Additional    interface{}            `json:"additional"`
+	Additional    *webhook.AttributeDTO  `json:"additional"`
 }
 
 type CallbackQuery struct {

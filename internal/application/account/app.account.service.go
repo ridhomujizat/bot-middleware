@@ -13,7 +13,7 @@ func NewAccountService(db *gorm.DB) *AccountService {
 	return &AccountService{db: db}
 }
 
-func (a *AccountService) GetUserByName(name string) (*AccountSetting, error) {
+func (a *AccountService) GetUserByAccountId(name string) (*AccountSetting, error) {
 	var account AccountSetting
 	if err := a.db.Where("account = ?", name).First(&account).Error; err != nil {
 		return nil, err

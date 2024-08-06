@@ -27,10 +27,10 @@ func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload IncomingTel
 
 	data := webhook.AttributeDTO{
 		// UniqueID:           payload.Data.Entry[0].Messaging[0].Sender.ID,
-		BotPlatform: params.BotPlatform,
-		Omnichannel: params.Omnichannel,
-		TenantId:    params.TenantId,
-		// AccountId:          payload.Account,
+		BotPlatform:        params.BotPlatform,
+		Omnichannel:        params.Omnichannel,
+		TenantId:           params.TenantId,
+		AccountId:          params.Account,
 		ChannelPlatform:    webhook.OFFICIAL,
 		ChannelSources:     webhook.TELEGRAM,
 		ChannelID:          webhook.TELEGRAM_ID,
@@ -67,7 +67,7 @@ func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload IncomingTel
 		data.DateTimestamp = time.Unix(int64(payload.Message.Date), 0).Format("2006-01-02 15:04:05")
 	}
 
-	payload.Additional = data
+	payload.Additional = &data
 
 	pterm.Info.Println("payload", payload)
 	pterm.Info.Println("queueName", queueName)
