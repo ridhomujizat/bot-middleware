@@ -2,6 +2,8 @@ package rabbit
 
 import (
 	"bot-middleware/config"
+	"encoding/json"
+	"log"
 
 	"github.com/pterm/pterm"
 	"github.com/streadway/amqp"
@@ -12,7 +14,7 @@ type RabbitMQSubscriber struct {
 	channel    *amqp.Channel
 }
 
-func NewRabbitMQSubscriber(cfg config.RabbitMQConfig) (*RabbitMQSubscriber, error) {
+func NewRabbitMQSubscriber(cfg config.RabbitMQConfig, allowNonJsonMessages bool) (*RabbitMQSubscriber, error) {
 	conn, err := amqp.Dial(cfg.URL)
 	if err != nil {
 		return nil, err
@@ -20,6 +22,7 @@ func NewRabbitMQSubscriber(cfg config.RabbitMQConfig) (*RabbitMQSubscriber, erro
 
 	ch, err := conn.Channel()
 	if err != nil {
+		conn.Close()
 		return nil, err
 	}
 
@@ -29,8 +32,21 @@ func NewRabbitMQSubscriber(cfg config.RabbitMQConfig) (*RabbitMQSubscriber, erro
 	}, nil
 }
 
-func (r *RabbitMQSubscriber) Subscribe(queueName string, handleFunc func([]byte)) error {
-	_, err := r.channel.QueueDeclare(
+func (r *RabbitMQSubscriber) Subscribe(queueName, exchange, routingKey string, allowNonJsonMessages bool, handleFunc func([]byte)) error {
+	err := r.channel.ExchangeDeclare(
+		exchange,
+		"direct",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return err
+	}
+
+	q, err := r.channel.QueueDeclare(
 		queueName,
 		true,
 		false,
@@ -42,13 +58,24 @@ func (r *RabbitMQSubscriber) Subscribe(queueName string, handleFunc func([]byte)
 		return err
 	}
 
+	err = r.channel.QueueBind(
+		q.Name,
+		routingKey,
+		exchange,
+		false,
+		nil,
+	)
+	if err != nil {
+		return err
+	}
+
 	msgs, err := r.channel.Consume(
-		queueName,
+		q.Name,
 		"",
-		true,  // auto-ack
-		false, // exclusive
-		false, // no-local
-		false, // no-wait
+		true,
+		false,
+		false,
+		false,
 		nil,
 	)
 	if err != nil {
@@ -57,7 +84,11 @@ func (r *RabbitMQSubscriber) Subscribe(queueName string, handleFunc func([]byte)
 
 	go func() {
 		for msg := range msgs {
-			handleFunc(msg.Body)
+			if allowNonJsonMessages || json.Valid(msg.Body) {
+				handleFunc(msg.Body)
+			} else {
+				log.Printf("Received non-JSON message: %s", string(msg.Body))
+			}
 		}
 	}()
 

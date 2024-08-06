@@ -1,31 +1,31 @@
 package messaging
 
-type MessagingPublisher interface {
+type Publisher interface {
 	Publish(queueName string, payload interface{}) error
 }
 
-type MessagingSubscriber interface {
-	Subscribe(queueName string, handleFunc func([]byte)) error
+type Subscriber interface {
+	Subscribe(exchange, routingKey, queueName string, allowNonJsonMessages bool, handleFunc func([]byte)) error
 }
 
 type MessagingGeneral interface {
-	GetPublisher() MessagingPublisher
-	GetSubscriber() MessagingSubscriber
+	Publish(queueName string, payload interface{}) error
+	Subscribe(exchange, routingKey, queueName string, allowNonJsonMessages bool, handleFunc func([]byte)) error
 }
 
 type messagingGeneral struct {
-	publisher  MessagingPublisher
-	subscriber MessagingSubscriber
+	publisher  Publisher
+	subscriber Subscriber
 }
 
-func NewMessagingGeneral(publisher MessagingPublisher, subscriber MessagingSubscriber) MessagingGeneral {
+func NewMessagingGeneral(publisher Publisher, subscriber Subscriber) MessagingGeneral {
 	return &messagingGeneral{publisher: publisher, subscriber: subscriber}
 }
 
-func (m *messagingGeneral) GetPublisher() MessagingPublisher {
-	return m.publisher
+func (m *messagingGeneral) Publish(queueName string, payload interface{}) error {
+	return m.publisher.Publish(queueName, payload)
 }
 
-func (m *messagingGeneral) GetSubscriber() MessagingSubscriber {
-	return m.subscriber
+func (m *messagingGeneral) Subscribe(exchange, routingKey, queueName string, allowNonJsonMessages bool, handleFunc func([]byte)) error {
+	return m.subscriber.Subscribe(exchange, routingKey, queueName, allowNonJsonMessages, handleFunc)
 }

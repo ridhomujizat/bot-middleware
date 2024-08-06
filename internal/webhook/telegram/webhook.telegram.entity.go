@@ -1,4 +1,4 @@
-package webHookTelegram
+package webhookTelegram
 
 import "encoding/json"
 
@@ -9,24 +9,25 @@ type PayloadQueue struct {
 	TenantId  string `json:"tenant_id"`
 }
 
-func UnmarshalTelegrampayload(data []byte) (Telegrampayload, error) {
-	var r Telegrampayload
+func UnmarshalTelegramDTO(data []byte) (IncomingTelegramDTO, error) {
+	var r IncomingTelegramDTO
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
 
-func (r *Telegrampayload) Marshal() ([]byte, error) {
+func (r *IncomingTelegramDTO) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-type Telegrampayload struct {
+type IncomingTelegramDTO struct {
 	UpdateID      int64                  `json:"update_id"`
 	Message       TelegrampayloadMessage `json:"message"`
 	CallbackQuery *CallbackQuery         `json:"callback_query"`
+	Additional    interface{}            `json:"additional"`
 }
 
 type CallbackQuery struct {
-	ID           string               `json:"id"`
+	ID           int64                `json:"id"`
 	From         CallbackQueryFrom    `json:"from"`
 	Message      CallbackQueryMessage `json:"message"`
 	ChatInstance string               `json:"chat_instance"`
@@ -34,7 +35,7 @@ type CallbackQuery struct {
 }
 
 type CallbackQueryFrom struct {
-	ID           string  `json:"id"`
+	ID           int64   `json:"id"`
 	IsBot        bool    `json:"is_bot"`
 	FirstName    string  `json:"first_name"`
 	LastName     *string `json:"last_name,omitempty"`
@@ -43,7 +44,7 @@ type CallbackQueryFrom struct {
 }
 
 type CallbackQueryMessage struct {
-	MessageID   string      `json:"message_id"`
+	MessageID   int64       `json:"message_id"`
 	From        PurpleFrom  `json:"from"`
 	Chat        Chat        `json:"chat"`
 	Date        int64       `json:"date"`
@@ -52,7 +53,7 @@ type CallbackQueryMessage struct {
 }
 
 type Chat struct {
-	ID        string  `json:"id"`
+	ID        int64   `json:"id"`
 	FirstName string  `json:"first_name"`
 	LastName  *string `json:"last_name,omitempty"`
 	Username  string  `json:"username"`
@@ -60,7 +61,7 @@ type Chat struct {
 }
 
 type PurpleFrom struct {
-	ID        string `json:"id"`
+	ID        int64  `json:"id"`
 	IsBot     bool   `json:"is_bot"`
 	FirstName string `json:"first_name"`
 	Username  string `json:"username"`
@@ -76,7 +77,7 @@ type InlineKeyboard struct {
 }
 
 type TelegrampayloadMessage struct {
-	MessageID string            `json:"message_id"`
+	MessageID int64             `json:"message_id"`
 	From      CallbackQueryFrom `json:"from"`
 	Chat      Chat              `json:"chat"`
 	Date      int64             `json:"date"`
