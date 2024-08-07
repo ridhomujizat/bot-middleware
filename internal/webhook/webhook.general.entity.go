@@ -111,7 +111,7 @@ type AttributeDTO struct {
 	MiddlewareEndpoint string          `json:"middleware_endpoint" validate:"required,url"`
 	CustName           string          `json:"cust_name" validate:"required"`
 	StreamID           string          `json:"stream_id,omitempty" validate:"omitempty"`
-	CustMessage        interface{}     `json:"cust_message" validate:"omitempty"`
+	CustMessage        string          `json:"cust_message,omitempty" validate:"omitempty"`
 	BotEndpoint        string          `json:"bot_endpoint" validate:"omitempty,url"`
 	BotAccount         string          `json:"bot_account" validate:"omitempty,string"`
 	SID                string          `json:"sid,omitempty" validate:"omitempty"`

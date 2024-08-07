@@ -10,6 +10,8 @@ import (
 	"bot-middleware/internal/pkg/messaging/rabbit"
 	"bot-middleware/internal/pkg/repository/postgre"
 	"bot-middleware/internal/pkg/util"
+	webhookFacebook "bot-middleware/internal/webhook/facebook"
+	webhookTole "bot-middleware/internal/webhook/tole"
 	workerTelegram "bot-middleware/internal/worker/telegram"
 	"errors"
 	"fmt"
@@ -22,7 +24,6 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 
 	webHookTelegram "bot-middleware/internal/webhook/telegram"
-	webhookTole "bot-middleware/internal/webhook/tole"
 )
 
 // @title Bot Middleware API
@@ -100,8 +101,10 @@ func initRouter(messagingGeneral messaging.MessagingGeneral, applicationService 
 
 	// Initialize API routes
 	routeGroup := router.Group("/api/v1")
+
 	webhookTole.InitRouterTole(messagingGeneral, routeGroup)
-	webHookTelegram.InitRouterTelegram(messagingGeneral, routeGroup, applicationService)
+	webHookTelegram.InitRouterTelegram(messagingGeneral, routeGroup)
+	webhookFacebook.InitRouterFacebook(messagingGeneral, routeGroup)
 
 	return router
 }
@@ -124,4 +127,5 @@ func initDB() *application.Services {
 func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services) {
 	workerTelegram.NewTelegramIncoming(messagingGeneral, applicationService, "exchange", "incoming", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false)
 	workerTelegram.NewTelegramBotProcess(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false)
+	// workerTole.NewToleService(messagingGeneral, "exchange", "routingKey", "incoming:tole", false)
 }

@@ -24,7 +24,6 @@ vendor/
 
 # Docker
 # docker-compose.yml
-# Dockerfile
 
 # IDE specific files
 .vscode/

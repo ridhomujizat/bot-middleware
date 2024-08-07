@@ -1,7 +1,6 @@
-package webhookTelegram
+package webhookFacebook
 
 import (
-	"bot-middleware/internal/application"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/util"
 	"bot-middleware/internal/webhook"
@@ -10,19 +9,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type TelegramController struct {
-	service     *TelegramService
-	application *application.Services
+type FacebookController struct {
+	service *FacebookService
 }
 
-func NewTelegramController(messagingGeneral messaging.MessagingGeneral) *TelegramController {
-	return &TelegramController{service: NewTelegramService(messagingGeneral)}
+func NewFacebookController(messagingGeneral messaging.MessagingGeneral) *FacebookController {
+
+	return &FacebookController{service: NewFacebookService(messagingGeneral)}
 }
 
 // Incoming godoc
-// @Summary Incoming telegram
-// @Description Incoming message for channel telegram
-// @Tags telegram
+// @Summary Incoming facebook
+// @Description Incoming message for channel facebook
+// @Tags facebook
 // @Produce json
 // @Param botplatform path string true "Bot Platform"
 // @Param omnichannel path string true "Omni Channel"
@@ -32,14 +31,13 @@ func NewTelegramController(messagingGeneral messaging.MessagingGeneral) *Telegra
 // @Success 200 {object} util.Responses{data=interface{}}
 // @Failure 500 {object} util.Responses{data=interface{}}
 // @Router /telegram/{botplatform}/{omnichannel}/{tenantId}/{account} [post]
-func (t *TelegramController) Incoming(ctx *gin.Context) {
+func (f *FacebookController) Incoming(ctx *gin.Context) {
 	botplatform := ctx.Param("botplatform")
 	omnichannel := ctx.Param("omnichannel")
 	tenantId := ctx.Param("tenantId")
 	account := ctx.Param("account")
 
-	var payload IncomingTelegramDTO
-
+	var payload webhook.IncomingDTO
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		util.APIResponse(ctx, err.Error(), http.StatusBadRequest, http.MethodPost, nil)
 		return
@@ -62,7 +60,7 @@ func (t *TelegramController) Incoming(ctx *gin.Context) {
 		return
 	}
 
-	res, err := t.service.Incoming(params, payload)
+	res, err := f.service.Incoming(params, payload)
 
 	if err != nil {
 		util.APIResponse(ctx, err.Error(), http.StatusInternalServerError, http.MethodPost, nil)
@@ -85,7 +83,7 @@ func (t *TelegramController) Incoming(ctx *gin.Context) {
 // @Success 200 {object} util.Responses{data=interface{}}
 // @Failure 500 {object} util.Responses{data=interface{}}
 // @Router /telegram/{botplatform}/{omnichannel}/{tenantId}/{account}/handover [post]
-func (t *TelegramController) Handover(ctx *gin.Context) {
+func (f *FacebookController) Handover(ctx *gin.Context) {
 	botplatform := ctx.Param("botplatform")
 	omnichannel := ctx.Param("omnichannel")
 	tenantId := ctx.Param("tenantId")
@@ -114,7 +112,7 @@ func (t *TelegramController) Handover(ctx *gin.Context) {
 		return
 	}
 
-	res, err := t.service.Handover(params, payload)
+	res, err := f.service.Handover(params, payload)
 
 	if err != nil {
 		util.APIResponse(ctx, err.Error(), http.StatusInternalServerError, http.MethodPost, nil)
@@ -137,7 +135,7 @@ func (t *TelegramController) Handover(ctx *gin.Context) {
 // @Success 200 {object} util.Responses{data=interface{}}
 // @Failure 500 {object} util.Responses{data=interface{}}
 // @Router /telegram/{botplatform}/{omnichannel}/{tenantId}/{account}/end [post]
-func (t *TelegramController) End(ctx *gin.Context) {
+func (f *FacebookController) End(ctx *gin.Context) {
 	botplatform := ctx.Param("botplatform")
 	omnichannel := ctx.Param("omnichannel")
 	tenantId := ctx.Param("tenantId")
@@ -166,7 +164,7 @@ func (t *TelegramController) End(ctx *gin.Context) {
 		return
 	}
 
-	res, err := t.service.End(params, payload)
+	res, err := f.service.End(params, payload)
 
 	if err != nil {
 		util.APIResponse(ctx, err.Error(), http.StatusInternalServerError, http.MethodPost, nil)

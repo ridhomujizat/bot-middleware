@@ -1,14 +1,13 @@
 package webhookTelegram
 
 import (
-	"bot-middleware/internal/application"
 	"bot-middleware/internal/pkg/messaging"
 
 	"github.com/gin-gonic/gin"
 )
 
-func InitRouterTelegram(messagingGeneral messaging.MessagingGeneral, router *gin.RouterGroup, serviceApplication *application.Services) {
-	telegramController := NewTelegramController(messagingGeneral, serviceApplication)
+func InitRouterTelegram(messagingGeneral messaging.MessagingGeneral, router *gin.RouterGroup) {
+	telegramController := NewTelegramController(messagingGeneral)
 
 	// Group Endpoint for telegram
 	routeGroupTelegram := router.Group("/telegram")

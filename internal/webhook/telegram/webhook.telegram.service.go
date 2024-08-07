@@ -50,7 +50,7 @@ func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload IncomingTel
 		UniqueID := fmt.Sprintf("%d", payload.CallbackQuery.From.ID)
 		data.CustName = custName
 		data.UniqueID = UniqueID
-		data.CustMessage = payload
+		data.CustMessage = payload.CallbackQuery.Message.Text
 		data.DateTimestamp = time.Unix(int64(payload.CallbackQuery.Message.Date), 0).Format("2006-01-02 15:04:05")
 	} else {
 		var lastName string
