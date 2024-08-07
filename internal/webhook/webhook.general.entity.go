@@ -5,16 +5,7 @@ type Omnichannel string
 type ChannelSources string
 type ChannelID int
 type ChannelPlatform string
-
-const (
-	BOTPRESS BotPlatform = "botpress"
-)
-
-const (
-	ONX Omnichannel = "onx"
-	ON5 Omnichannel = "on5"
-	ON4 Omnichannel = "on4"
-)
+type MessageType string
 
 const (
 	WHATSAPP    ChannelSources = "whatsapp"
@@ -35,6 +26,32 @@ const (
 	MAYTAPI      ChannelPlatform = "maytapi"
 	OCTOPUSHCHAT ChannelPlatform = "octopushchat"
 	OFFICIAL     ChannelPlatform = "official"
+)
+
+const (
+	BOTPRESS BotPlatform = "botpress"
+)
+
+const (
+	ONX Omnichannel = "onx"
+	ON5 Omnichannel = "on5"
+	ON4 Omnichannel = "on4"
+)
+
+const (
+	TEXT        MessageType = "text"
+	IMAGE       MessageType = "image"
+	CONTACTS    MessageType = "contacts"
+	DOCUMENT    MessageType = "document"
+	INTERACTIVE MessageType = "interactive"
+	BUTTON      MessageType = "button"
+	LOCATION    MessageType = "location"
+	VIDEO       MessageType = "video"
+	STICKER     MessageType = "sticker"
+	ORDER       MessageType = "order"
+	UNKNOWN     MessageType = "unknown"
+	VOICE       MessageType = "voice"
+	EPHEMERAL   MessageType = "ephemeral"
 )
 
 type HopContext struct {
@@ -111,7 +128,7 @@ type AttributeDTO struct {
 	MiddlewareEndpoint string          `json:"middleware_endpoint" validate:"required,url"`
 	CustName           string          `json:"cust_name" validate:"required"`
 	StreamID           string          `json:"stream_id,omitempty" validate:"omitempty"`
-	CustMessage        string          `json:"cust_message,omitempty" validate:"omitempty"`
+	CustMessage        interface{}     `json:"cust_message,omitempty" validate:"omitempty"`
 	BotEndpoint        string          `json:"bot_endpoint" validate:"omitempty,url"`
 	BotAccount         string          `json:"bot_account" validate:"omitempty,string"`
 	SID                string          `json:"sid,omitempty" validate:"omitempty"`

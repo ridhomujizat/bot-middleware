@@ -38,7 +38,8 @@ func (t *TelegramController) Incoming(ctx *gin.Context) {
 	tenantId := ctx.Param("tenantId")
 	account := ctx.Param("account")
 
-	var payload map[string]interface{}
+	var payload IncomingTelegramDTO
+
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		util.APIResponse(ctx, err.Error(), http.StatusBadRequest, http.MethodPost, nil)
 		return
@@ -142,7 +143,7 @@ func (t *TelegramController) End(ctx *gin.Context) {
 	tenantId := ctx.Param("tenantId")
 	account := ctx.Param("account")
 
-	var payload EndDTO
+	var payload webhook.EndDTO
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		util.APIResponse(ctx, err.Error(), http.StatusBadRequest, http.MethodPost, nil)
 		return
@@ -165,12 +166,12 @@ func (t *TelegramController) End(ctx *gin.Context) {
 		return
 	}
 
-	// res, err := t.service.End(params, payload)
+	res, err := t.service.End(params, payload)
 
-	// if err != nil {
-	// 	util.APIResponse(ctx, err.Error(), http.StatusInternalServerError, http.MethodPost, nil)
-	// 	return
-	// }
+	if err != nil {
+		util.APIResponse(ctx, err.Error(), http.StatusInternalServerError, http.MethodPost, nil)
+		return
+	}
 
-	// util.APIResponse(ctx, "End received", http.StatusOK, http.MethodPost, res)
+	util.APIResponse(ctx, "End received", http.StatusOK, http.MethodPost, res)
 }
