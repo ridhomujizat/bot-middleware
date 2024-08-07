@@ -5,9 +5,7 @@ import (
 	"bot-middleware/internal/entities"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/util"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
 )
 
@@ -70,30 +68,5 @@ func (t *TelegramBotProcess) botProcess(body []byte) {
 	// END BOTPRESS ====================================
 	queueName := fmt.Sprintf("%s:%s:%s:%s:outgoing", payload.Additional.Omnichannel, payload.Additional.TenantId, util.GodotEnv("TELEGRAM_QUEUE_NAME"), payload.Additional.AccountId)
 	t.messagingGeneral.Publish(queueName, payload)
-
-}
-
-func (t *TelegramBotProcess) OutgoingTelegram(tenantId string, accountId string, payload interface{}) ([]byte, error) {
-	account, errAcc := t.application.AccountService.GetUserByAccountId(accountId)
-	if errAcc != nil {
-		util.HandleAppError(errAcc, "get user by account id", "OutgoingTelegramText", false)
-	}
-
-	jsonData, err := json.Marshal(payload)
-	if err != nil {
-		fmt.Println("Error marshaling JSON:", err)
-	}
-
-	baseUrl := fmt.Sprintf("%s/sendMessage", account.BaseURL)
-	respon, statusCode, errReq := util.HttpPost(baseUrl, []byte(jsonData), map[string]string{})
-	if errReq != nil {
-		util.HandleAppError(errReq, "http post", "OutgoingTelegramText", false)
-	}
-
-	if statusCode == http.StatusOK {
-		return []byte(respon), nil
-	} else {
-		return nil, errReq
-	}
 
 }

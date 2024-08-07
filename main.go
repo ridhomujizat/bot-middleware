@@ -132,5 +132,6 @@ func initDB() *application.Services {
 func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services) {
 	workerTelegram.NewTelegramIncoming(messagingGeneral, applicationService, "exchange", "incoming", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false)
 	workerTelegram.NewTelegramBotProcess(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false)
+	workerTelegram.NewTelegramOutgoingHandler(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:outgoing", false)
 	// workerTole.NewToleService(messagingGeneral, "exchange", "routingKey", "incoming:tole", false)
 }
