@@ -2,9 +2,9 @@ package workerTelegram
 
 import (
 	"bot-middleware/internal/application"
+	"bot-middleware/internal/entities"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/util"
-	webhookTelegram "bot-middleware/internal/webhook/telegram"
 	"fmt"
 	"log"
 
@@ -12,31 +12,22 @@ import (
 	"github.com/pterm/pterm"
 )
 
-type TelegramService struct {
+type TelegramIncoming struct {
 	messagingGeneral messaging.MessagingGeneral
 	application      *application.Services
 }
 
-func NewTelegramService(messagingGeneral messaging.MessagingGeneral, application *application.Services, exchange, routingKey, queueName string, allowNonJsonMessages bool) {
-	service := &TelegramService{
+func NewTelegramIncoming(messagingGeneral messaging.MessagingGeneral, application *application.Services, exchange, routingKey, queueName string, allowNonJsonMessages bool) {
+	service := &TelegramIncoming{
 		messagingGeneral: messagingGeneral,
 		application:      application,
 	}
 	service.subscribe(exchange, routingKey, queueName, allowNonJsonMessages)
 }
 
-func (t *TelegramService) subscribe(exchange, routingKey, queueName string, allowNonJsonMessages bool) {
+func (t *TelegramIncoming) subscribe(exchange, routingKey, queueName string, allowNonJsonMessages bool) {
 	handleFunc := func(body []byte) {
-		switch routingKey {
-		case "incoming":
-			fmt.Println("Initializing Telegram service...")
-			t.incomingHandler(body)
-		case "bot-process":
-			fmt.Println("Starting bot service...")
-			t.botHandler(body)
-		default:
-			fmt.Println("Unknown routing")
-		}
+		t.incomingHandler(body)
 	}
 
 	go func() {
@@ -46,9 +37,9 @@ func (t *TelegramService) subscribe(exchange, routingKey, queueName string, allo
 	}()
 }
 
-func (t *TelegramService) incomingHandler(body []byte) {
+func (t *TelegramIncoming) incomingHandler(body []byte) {
 
-	payload, errBody := webhookTelegram.UnmarshalTelegramDTO(body)
+	payload, errBody := entities.UnmarshalTelegramDTO(body)
 	if errBody != nil {
 		util.HandleAppError(errBody, "unmarshal telegram dto", "IncomingHandler", true)
 	}
@@ -81,9 +72,5 @@ func (t *TelegramService) incomingHandler(body []byte) {
 
 	queueName := fmt.Sprintf("%s:%s:%s:%s:bot", additional.Omnichannel, additional.TenantId, util.GodotEnv("TELEGRAM_QUEUE_NAME"), additional.AccountId)
 	t.messagingGeneral.Publish(queueName, payload)
-
-}
-
-func (t *TelegramService) botHandler(body []byte) {
 
 }

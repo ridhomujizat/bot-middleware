@@ -122,6 +122,6 @@ func initDB() *application.Services {
 }
 
 func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services) {
-	workerTelegram.NewTelegramService(messagingGeneral, applicationService, "exchange", "incoming", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false)
-	workerTelegram.NewTelegramService(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false)
+	workerTelegram.NewTelegramIncoming(messagingGeneral, applicationService, "exchange", "incoming", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false)
+	workerTelegram.NewTelegramBotProcess(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false)
 }

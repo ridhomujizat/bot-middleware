@@ -1,15 +1,18 @@
 package appBot
 
 import (
+	"bot-middleware/internal/application/bot/botpress"
+
 	"gorm.io/gorm"
 )
 
 type BotService struct {
-	db *gorm.DB
+	db       *gorm.DB
+	Botpress *botpress.BotpressService
 }
 
 func NewBotService(db *gorm.DB) *BotService {
-	return &BotService{db: db}
+	return &BotService{db: db, Botpress: botpress.NewBotpressService(db)}
 }
 
 func (a *BotService) GetServerBot(name string) (*ServerBot, error) {

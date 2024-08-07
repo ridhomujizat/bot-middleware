@@ -5,7 +5,6 @@ import (
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/util"
 	"bot-middleware/internal/webhook"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -57,7 +56,6 @@ func (t *TelegramController) Incoming(ctx *gin.Context) {
 		TenantId:    tenantId,
 		Account:     account,
 	}
-	fmt.Println("params=========", params)
 
 	if errStr := util.ValidatorErrorResponse(params); errStr != "" {
 		util.APIResponse(ctx, errStr, http.StatusBadRequest, http.MethodPost, nil)

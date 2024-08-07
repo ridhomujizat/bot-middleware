@@ -1,4 +1,4 @@
-package webhookTelegram
+package entities
 
 import (
 	"bot-middleware/internal/webhook"
