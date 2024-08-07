@@ -2,7 +2,7 @@ package util
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 )
@@ -31,7 +31,7 @@ func HttpGet(url string, headers map[string]string) (string, int, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", 0, err
 	}
@@ -56,7 +56,7 @@ func HttpPost(url string, body []byte, headers map[string]string) (string, int, 
 	}
 	defer resp.Body.Close()
 
-	responseBody, err := ioutil.ReadAll(resp.Body)
+	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", 0, err
 	}
@@ -81,7 +81,7 @@ func HttpPut(url string, body []byte, headers map[string]string) (string, int, e
 	}
 	defer resp.Body.Close()
 
-	responseBody, err := ioutil.ReadAll(resp.Body)
+	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", 0, err
 	}
@@ -105,7 +105,7 @@ func HttpDelete(url string, headers map[string]string) (string, int, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", 0, err
 	}

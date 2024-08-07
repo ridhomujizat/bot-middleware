@@ -32,7 +32,7 @@ func (t *TelegramIncoming) subscribe(exchange, routingKey, queueName string, all
 
 	go func() {
 		if err := t.messagingGeneral.Subscribe(exchange, routingKey, queueName, allowNonJsonMessages, handleFunc); err != nil {
-			util.HandleAppError(err, "subscribe", "Subscribe", true)
+			util.HandleAppError(err, "subscribe", "Subscribe", false)
 		}
 	}()
 }
@@ -41,7 +41,7 @@ func (t *TelegramIncoming) incomingHandler(body []byte) {
 
 	payload, errBody := entities.UnmarshalTelegramDTO(body)
 	if errBody != nil {
-		util.HandleAppError(errBody, "unmarshal telegram dto", "IncomingHandler", true)
+		util.HandleAppError(errBody, "unmarshal telegram dto", "IncomingHandler", false)
 	}
 
 	var additional = payload.Additional
@@ -67,7 +67,6 @@ func (t *TelegramIncoming) incomingHandler(body []byte) {
 		payload.Additional.BotAccount = session.BotAccount
 		payload.Additional.SID = session.SID
 		payload.Additional.NewSession = false
-		pterm.Info.Printfln("payload: %v", payload.Additional)
 	}
 
 	queueName := fmt.Sprintf("%s:%s:%s:%s:bot", additional.Omnichannel, additional.TenantId, util.GodotEnv("TELEGRAM_QUEUE_NAME"), additional.AccountId)
