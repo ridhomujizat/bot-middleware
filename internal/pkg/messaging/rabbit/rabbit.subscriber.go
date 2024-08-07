@@ -32,7 +32,7 @@ func NewRabbitMQSubscriber(cfg config.RabbitMQConfig, allowNonJsonMessages bool)
 	}, nil
 }
 
-func (r *RabbitMQSubscriber) Subscribe(queueName, exchange, routingKey string, allowNonJsonMessages bool, handleFunc func([]byte)) error {
+func (r *RabbitMQSubscriber) Subscribe(exchange, routingKey string, queueName string, allowNonJsonMessages bool, handleFunc func([]byte)) error {
 	err := r.channel.ExchangeDeclare(
 		exchange,
 		"direct",

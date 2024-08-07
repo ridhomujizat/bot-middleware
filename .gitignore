@@ -1,11 +1,11 @@
 # Environment variables
-.env
+# .env
 
 # Dependency directories
 vendor/
 
 # Go modules
-go.sum
+# go.sum
 
 # Build and output directories
 /bin
@@ -20,10 +20,10 @@ go.sum
 *.swagger
 *.yaml
 *.json
-docs/
+# docs/
 
 # Docker
-docker-compose.yml
+# docker-compose.yml
 
 # IDE specific files
 .vscode/

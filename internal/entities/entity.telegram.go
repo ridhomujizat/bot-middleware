@@ -1,16 +1,9 @@
-package webhookTelegram
+package entities
 
 import (
 	"bot-middleware/internal/webhook"
 	"encoding/json"
 )
-
-type EndDTO struct {
-	AccountID string `json:"account_id" validate:"required"`
-	UniqueID  string `json:"unique_id" validate:"required"`
-	Message   string `json:"message,omitempty" validate:"required"`
-	SID       string `json:"sid,omitempty" validate:"required"`
-}
 
 func UnmarshalTelegramDTO(data []byte) (IncomingTelegramDTO, error) {
 	var r IncomingTelegramDTO

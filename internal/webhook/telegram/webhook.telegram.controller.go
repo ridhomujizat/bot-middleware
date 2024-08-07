@@ -1,6 +1,7 @@
 package webhookTelegram
 
 import (
+	"bot-middleware/internal/application"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/util"
 	"bot-middleware/internal/webhook"
@@ -10,11 +11,11 @@ import (
 )
 
 type TelegramController struct {
-	service *TelegramService
+	service     *TelegramService
+	application *application.Services
 }
 
 func NewTelegramController(messagingGeneral messaging.MessagingGeneral) *TelegramController {
-
 	return &TelegramController{service: NewTelegramService(messagingGeneral)}
 }
 
@@ -164,12 +165,12 @@ func (t *TelegramController) End(ctx *gin.Context) {
 		return
 	}
 
-	res, err := t.service.End(params, payload)
+	// res, err := t.service.End(params, payload)
 
-	if err != nil {
-		util.APIResponse(ctx, err.Error(), http.StatusInternalServerError, http.MethodPost, nil)
-		return
-	}
+	// if err != nil {
+	// 	util.APIResponse(ctx, err.Error(), http.StatusInternalServerError, http.MethodPost, nil)
+	// 	return
+	// }
 
-	util.APIResponse(ctx, "End received", http.StatusOK, http.MethodPost, res)
+	// util.APIResponse(ctx, "End received", http.StatusOK, http.MethodPost, res)
 }

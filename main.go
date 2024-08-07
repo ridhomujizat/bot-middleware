@@ -2,16 +2,20 @@ package main
 
 import (
 	"bot-middleware/config"
+	"bot-middleware/internal/application"
+	appAccount "bot-middleware/internal/application/account"
+	appBot "bot-middleware/internal/application/bot"
+	appSession "bot-middleware/internal/application/session"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/messaging/rabbit"
+	"bot-middleware/internal/pkg/repository/postgre"
 	"bot-middleware/internal/pkg/util"
 	webhookFacebook "bot-middleware/internal/webhook/facebook"
 	webhookLivechat "bot-middleware/internal/webhook/livechat"
-	webhookTelegram "bot-middleware/internal/webhook/telegram"
-	webhookTole "bot-middleware/internal/webhook/tole"
 	webhookWhatsapp "bot-middleware/internal/webhook/whatsapp"
-	workerTole "bot-middleware/internal/worker/tole"
 
+	webhookTole "bot-middleware/internal/webhook/tole"
+	workerTelegram "bot-middleware/internal/worker/telegram"
 	"errors"
 	"fmt"
 
@@ -21,6 +25,8 @@ import (
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+
+	webHookTelegram "bot-middleware/internal/webhook/telegram"
 )
 
 // @title Bot Middleware API
@@ -37,6 +43,9 @@ func main() {
 		util.HandleAppError(err, "main", "loadConfig", true)
 	}
 
+	// Init DB
+	applicationService := initDB()
+
 	// Init RabbitMQ
 	rabbitPublisher, rabbitSubscriber := initRabbitMQ(cfg)
 
@@ -44,10 +53,10 @@ func main() {
 	messagingService := messaging.NewMessagingGeneral(rabbitPublisher, rabbitSubscriber)
 
 	// Init Subscriber
-	initSubscriber(messagingService)
+	initSubscriber(messagingService, applicationService)
 
 	// Init Router
-	router := initRouter(messagingService)
+	router := initRouter(messagingService, applicationService)
 
 	port := util.GodotEnv("PORT")
 	if port == "" {
@@ -87,7 +96,7 @@ func initRabbitMQ(cfg config.RabbitMQConfig) (*rabbit.RabbitMQPublisher, *rabbit
 	return rabbitPublisher, rabbitSubscriber
 }
 
-func initRouter(messagingGeneral messaging.MessagingGeneral) *gin.Engine {
+func initRouter(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services) *gin.Engine {
 	router := gin.Default()
 
 	// Add Swagger route
@@ -97,7 +106,7 @@ func initRouter(messagingGeneral messaging.MessagingGeneral) *gin.Engine {
 	routeGroup := router.Group("/api/v1")
 
 	webhookTole.InitRouterTole(messagingGeneral, routeGroup)
-	webhookTelegram.InitRouterTelegram(messagingGeneral, routeGroup)
+	webHookTelegram.InitRouterTelegram(messagingGeneral, routeGroup)
 	webhookFacebook.InitRouterFacebook(messagingGeneral, routeGroup)
 	webhookWhatsapp.InitRouterWhatsapp(messagingGeneral, routeGroup)
 	webhookLivechat.InitRouterLivechat(messagingGeneral, routeGroup)
@@ -105,6 +114,23 @@ func initRouter(messagingGeneral messaging.MessagingGeneral) *gin.Engine {
 	return router
 }
 
-func initSubscriber(messagingGeneral messaging.MessagingGeneral) {
-	workerTole.NewToleService(messagingGeneral, "exchange", "routingKey", "incoming:tole", false)
+func initDB() *application.Services {
+	db, err := postgre.GetDB()
+	if err != nil {
+		util.HandleAppError(err, "main", "initDB", true)
+	}
+
+	services := &application.Services{
+		AccountService:  appAccount.NewAccountService(db),
+		SessinonService: appSession.NewSessionService(db),
+		BotService:      appBot.NewBotService(db),
+	}
+	return services
+
+}
+
+func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services) {
+	workerTelegram.NewTelegramIncoming(messagingGeneral, applicationService, "exchange", "incoming", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false)
+	workerTelegram.NewTelegramBotProcess(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false)
+	// workerTole.NewToleService(messagingGeneral, "exchange", "routingKey", "incoming:tole", false)
 }
