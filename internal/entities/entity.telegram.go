@@ -16,10 +16,11 @@ func (r *IncomingTelegramDTO) Marshal() ([]byte, error) {
 }
 
 type IncomingTelegramDTO struct {
-	UpdateID      int64                  `json:"update_id"`
-	Message       TelegrampayloadMessage `json:"message"`
-	CallbackQuery *CallbackQuery         `json:"callback_query"`
-	Additional    *webhook.AttributeDTO  `json:"additional"`
+	UpdateID      int64                   `json:"update_id"`
+	Message       TelegrampayloadMessage  `json:"message"`
+	CallbackQuery *CallbackQuery          `json:"callback_query"`
+	Additional    *webhook.AttributeDTO   `json:"additional"`
+	BotResponse   *map[string]interface{} `json:"bot_response"`
 }
 
 type CallbackQuery struct {
@@ -85,4 +86,21 @@ type Entity struct {
 	Offset int64  `json:"offset"`
 	Length int64  `json:"length"`
 	Type   string `json:"type"`
+}
+
+type OutgoingTelegramText struct {
+	ChatID string `json:"chat_id"`
+	Text   string `json:"text"`
+}
+
+type OutgoingTelegramButton struct {
+	ChatID      string              `json:"chat_id"`
+	Text        string              `json:"text"`
+	Subtitle    string              `json:"subtitle"`
+	Image       string              `json:"image"`
+	ReplyMarkup OutgoingReplyMarkup `json:"reply_markup"`
+}
+
+type OutgoingReplyMarkup struct {
+	InlineKeyboard [][]InlineKeyboard `json:"inline_keyboard"`
 }

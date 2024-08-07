@@ -171,3 +171,10 @@ type Temp struct {
 	SkillChoiceValidM59Czq3Kso        interface{} `json:"skill-choice-valid-m59czq3kso"`
 	SkillChoiceRetM59Czq3Kso          interface{} `json:"skill-choice-ret-m59czq3kso"`
 }
+
+type BotPressResponseDTO struct {
+	Responses  []Response   `json:"responses"`
+	State      string       `json:"state"`
+	Stacktrace []Stacktrace `json:"__stacktrace"`
+	BotDate    time.Time    `json:"botDate"`
+}

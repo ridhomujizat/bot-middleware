@@ -67,7 +67,7 @@ func (a *BotpressService) Login() (*LoginRespon, error) {
 	}
 }
 
-func (a *BotpressService) AskBotpress(uniqueId string, token string, baseURL string, botP *AskPayloadBotpresDTO) ([]Response, error) {
+func (a *BotpressService) AskBotpress(uniqueId string, token string, baseURL string, botP *AskPayloadBotpresDTO) (*BotpressRespon, error) {
 	url := fmt.Sprintf("%s/converse/%s/secured?include=state,suggestions,decision,nlu", baseURL, uniqueId)
 
 	jsonData, err := json.Marshal(botP)
@@ -96,8 +96,7 @@ func (a *BotpressService) AskBotpress(uniqueId string, token string, baseURL str
 		return nil, err
 	}
 
-	var Responses = responBotpress.Responses
-	return Responses, nil
+	return &responBotpress, nil
 }
 
 func (a *BotpressService) ParsingPayloadTelegram(payload entities.IncomingTelegramDTO) (*AskPayloadBotpresDTO, error) {
