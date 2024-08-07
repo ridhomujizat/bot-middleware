@@ -6,10 +6,12 @@ import (
 	"bot-middleware/internal/pkg/messaging/rabbit"
 	"bot-middleware/internal/pkg/util"
 	webhookFacebook "bot-middleware/internal/webhook/facebook"
+	webhookLivechat "bot-middleware/internal/webhook/livechat"
 	webhookTelegram "bot-middleware/internal/webhook/telegram"
 	webhookTole "bot-middleware/internal/webhook/tole"
 	webhookWhatsapp "bot-middleware/internal/webhook/whatsapp"
 	workerTole "bot-middleware/internal/worker/tole"
+
 	"errors"
 	"fmt"
 
@@ -98,6 +100,7 @@ func initRouter(messagingGeneral messaging.MessagingGeneral) *gin.Engine {
 	webhookTelegram.InitRouterTelegram(messagingGeneral, routeGroup)
 	webhookFacebook.InitRouterFacebook(messagingGeneral, routeGroup)
 	webhookWhatsapp.InitRouterWhatsapp(messagingGeneral, routeGroup)
+	webhookLivechat.InitRouterLivechat(messagingGeneral, routeGroup)
 
 	return router
 }
