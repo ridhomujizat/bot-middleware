@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/streadway/amqp"
 )
 
 type TelegramBotProcess struct {
@@ -25,7 +27,7 @@ func NewTelegramBotProcess(messagingGeneral messaging.MessagingGeneral, applicat
 }
 
 func (t *TelegramBotProcess) subscribe(exchange, routingKey, queueName string, allowNonJsonMessages bool) {
-	handleFunc := func(body []byte) {
+	handleFunc := func(body []byte, delivery amqp.Delivery) {
 		t.botProcess(body)
 	}
 
@@ -53,7 +55,7 @@ func (t *TelegramBotProcess) botProcess(body []byte) {
 		util.HandleAppError(botPayloadErr, "parsing payload telegram", "IncomingHandler", false)
 	}
 
-	responBot, errAsk := t.application.BotService.Botpress.AskBotpress(payload.Additional.UniqueID, loginResutl.Token, loginResutl.BaseURL, botPayload)
+	responBot, errAsk := t.application.BotService.Botpress.AskBotpress(payload.Additional.UniqueId, loginResutl.Token, loginResutl.BaseURL, botPayload)
 	if errAsk != nil {
 		util.HandleAppError(errAsk, "ask botpress", "IncomingHandler", false)
 	}

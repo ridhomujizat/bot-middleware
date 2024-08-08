@@ -15,6 +15,985 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/facebook/{botplatform}/{omnichannel}/{tenantId}/{account}": {
+            "post": {
+                "description": "Incoming message for channel facebook",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "facebook"
+                ],
+                "summary": "Incoming facebook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bot Platform",
+                        "name": "botplatform",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Omni Channel",
+                        "name": "omnichannel",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tenant",
+                        "name": "tenantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account",
+                        "name": "account",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/webhookFacebook.IncomingDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/facebook/{botplatform}/{omnichannel}/{tenantId}/{account}/end": {
+            "post": {
+                "description": "End message for channel facebook",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "facebook"
+                ],
+                "summary": "End facebook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bot Platform",
+                        "name": "botplatform",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Omni Channel",
+                        "name": "omnichannel",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tenant",
+                        "name": "tenantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account",
+                        "name": "account",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/webhookFacebook.EndDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/facebook/{botplatform}/{omnichannel}/{tenantId}/{account}/handover": {
+            "post": {
+                "description": "Handover message for channel facebook",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "facebook"
+                ],
+                "summary": "Handover facebook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bot Platform",
+                        "name": "botplatform",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Omni Channel",
+                        "name": "omnichannel",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tenant",
+                        "name": "tenantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account",
+                        "name": "account",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/webhook.HandoverDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/octopushchat/livechat/{botplatform}/{omnichannel}/{tenantId}/{account}": {
+            "post": {
+                "description": "Incoming message for channel livechat",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "livechat"
+                ],
+                "summary": "Incoming livechat",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bot Platform",
+                        "name": "botplatform",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Omni Channel",
+                        "name": "omnichannel",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tenant",
+                        "name": "tenantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account",
+                        "name": "account",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/webhookLivechat.IncomingDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/octopushchat/livechat/{botplatform}/{omnichannel}/{tenantId}/{account}/end": {
+            "post": {
+                "description": "End message for channel livechat",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "livechat"
+                ],
+                "summary": "End livechat",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bot Platform",
+                        "name": "botplatform",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Omni Channel",
+                        "name": "omnichannel",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tenant",
+                        "name": "tenantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account",
+                        "name": "account",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/webhookLivechat.EndDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/octopushchat/livechat/{botplatform}/{omnichannel}/{tenantId}/{account}/handover": {
+            "post": {
+                "description": "Handover message for channel livechat",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "livechat"
+                ],
+                "summary": "Handover livechat",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bot Platform",
+                        "name": "botplatform",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Omni Channel",
+                        "name": "omnichannel",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tenant",
+                        "name": "tenantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account",
+                        "name": "account",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/webhook.HandoverDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/socioconnect/whatsapp/{botplatform}/{omnichannel}/{tenantId}/{account}": {
+            "post": {
+                "description": "Incoming message for channel WhatsApp",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "whatsapp"
+                ],
+                "summary": "Incoming WhatsApp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bot Platform",
+                        "name": "botplatform",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Omni Channel",
+                        "name": "omnichannel",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tenant",
+                        "name": "tenantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account",
+                        "name": "account",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/webhookWhatsapp.IncomingDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/socioconnect/whatsapp/{botplatform}/{omnichannel}/{tenantId}/{account}/commerce": {
+            "post": {
+                "description": "Commerce message for channel WhatsApp",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "whatsapp"
+                ],
+                "summary": "Commerce WhatsApp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bot Platform",
+                        "name": "botplatform",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Omni Channel",
+                        "name": "omnichannel",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tenant",
+                        "name": "tenantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account",
+                        "name": "account",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/webhookWhatsapp.IncomingDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/socioconnect/whatsapp/{botplatform}/{omnichannel}/{tenantId}/{account}/end": {
+            "post": {
+                "description": "End message for channel WhatsApp",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "whatsapp"
+                ],
+                "summary": "End WhatsApp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bot Platform",
+                        "name": "botplatform",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Omni Channel",
+                        "name": "omnichannel",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tenant",
+                        "name": "tenantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account",
+                        "name": "account",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/webhookWhatsapp.EndDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/socioconnect/whatsapp/{botplatform}/{omnichannel}/{tenantId}/{account}/handover": {
+            "post": {
+                "description": "Handover message for channel WhatsApp",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "whatsapp"
+                ],
+                "summary": "Handover WhatsApp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bot Platform",
+                        "name": "botplatform",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Omni Channel",
+                        "name": "omnichannel",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tenant",
+                        "name": "tenantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account",
+                        "name": "account",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/webhook.HandoverDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/socioconnect/whatsapp/{botplatform}/{omnichannel}/{tenantId}/{account}/midtrans": {
+            "post": {
+                "description": "Midtrans message for channel WhatsApp",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "whatsapp"
+                ],
+                "summary": "Midtrans WhatsApp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bot Platform",
+                        "name": "botplatform",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Omni Channel",
+                        "name": "omnichannel",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tenant",
+                        "name": "tenantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account",
+                        "name": "account",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Responses"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/telegram/{botplatform}/{omnichannel}/{tenantId}/{account}": {
             "post": {
                 "description": "Incoming message for channel telegram",
@@ -60,7 +1039,8 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/webhook.IncomingDTO"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 ],
@@ -149,7 +1129,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/webhook.EndDTO"
+                            "$ref": "#/definitions/webhookTelegram.EndDTO"
                         }
                     }
                 ],
@@ -367,32 +1347,6 @@ const docTemplate = `{
                 }
             }
         },
-        "webhook.AttachmentPayload": {
-            "type": "object",
-            "required": [
-                "url"
-            ],
-            "properties": {
-                "url": {
-                    "type": "string"
-                }
-            }
-        },
-        "webhook.Attachments": {
-            "type": "object",
-            "required": [
-                "payload",
-                "type"
-            ],
-            "properties": {
-                "payload": {
-                    "$ref": "#/definitions/webhook.AttachmentPayload"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
         "webhook.AttributeDTO": {
             "type": "object",
             "required": [
@@ -410,6 +1364,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "accountId": {
+                    "type": "string"
+                },
+                "bot_account": {
+                    "type": "string"
+                },
+                "bot_endpoint": {
                     "type": "string"
                 },
                 "botplatform": {
@@ -461,9 +1421,7 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "cust_message": {
-                    "type": "string"
-                },
+                "cust_message": {},
                 "cust_name": {
                     "type": "string"
                 },
@@ -472,6 +1430,9 @@ const docTemplate = `{
                 },
                 "middleware_endpoint": {
                     "type": "string"
+                },
+                "new_session": {
+                    "type": "boolean"
                 },
                 "omnichannel": {
                     "enum": [
@@ -484,6 +1445,9 @@ const docTemplate = `{
                             "$ref": "#/definitions/webhook.Omnichannel"
                         }
                     ]
+                },
+                "sid": {
+                    "type": "string"
                 },
                 "stream_id": {
                     "type": "string"
@@ -550,75 +1514,6 @@ const docTemplate = `{
                 "TELEGRAM"
             ]
         },
-        "webhook.Data": {
-            "type": "object",
-            "required": [
-                "entry",
-                "object"
-            ],
-            "properties": {
-                "entry": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/webhook.Entry"
-                    }
-                },
-                "object": {
-                    "type": "string"
-                }
-            }
-        },
-        "webhook.EndDTO": {
-            "type": "object",
-            "required": [
-                "account_id",
-                "message",
-                "sid",
-                "unique_id"
-            ],
-            "properties": {
-                "account_id": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "sid": {
-                    "type": "string"
-                },
-                "unique_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "webhook.Entry": {
-            "type": "object",
-            "required": [
-                "id",
-                "messaging",
-                "time"
-            ],
-            "properties": {
-                "hop_context": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/webhook.HopContext"
-                    }
-                },
-                "id": {
-                    "type": "string"
-                },
-                "messaging": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/webhook.Messaging"
-                    }
-                },
-                "time": {
-                    "type": "integer"
-                }
-            }
-        },
         "webhook.HandoverDTO": {
             "type": "object",
             "required": [
@@ -643,7 +1538,148 @@ const docTemplate = `{
                 }
             }
         },
-        "webhook.HopContext": {
+        "webhook.MessageType": {
+            "type": "string",
+            "enum": [
+                "text",
+                "image",
+                "contacts",
+                "document",
+                "interactive",
+                "button",
+                "location",
+                "video",
+                "sticker",
+                "order",
+                "unknown",
+                "voice",
+                "ephemeral"
+            ],
+            "x-enum-varnames": [
+                "TEXT",
+                "IMAGE",
+                "CONTACTS",
+                "DOCUMENT",
+                "INTERACTIVE",
+                "BUTTON",
+                "LOCATION",
+                "VIDEO",
+                "STICKER",
+                "ORDER",
+                "UNKNOWN",
+                "VOICE",
+                "EPHEMERAL"
+            ]
+        },
+        "webhook.Omnichannel": {
+            "type": "string",
+            "enum": [
+                "onx",
+                "on5",
+                "on4"
+            ],
+            "x-enum-varnames": [
+                "ONX",
+                "ON5",
+                "ON4"
+            ]
+        },
+        "webhookFacebook.AttachmentPayload": {
+            "type": "object",
+            "required": [
+                "url"
+            ],
+            "properties": {
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "webhookFacebook.Attachments": {
+            "type": "object",
+            "required": [
+                "payload",
+                "type"
+            ],
+            "properties": {
+                "payload": {
+                    "$ref": "#/definitions/webhookFacebook.AttachmentPayload"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "webhookFacebook.Data": {
+            "type": "object",
+            "required": [
+                "entry",
+                "object"
+            ],
+            "properties": {
+                "entry": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/webhookFacebook.Entry"
+                    }
+                },
+                "object": {
+                    "type": "string"
+                }
+            }
+        },
+        "webhookFacebook.EndDTO": {
+            "type": "object",
+            "required": [
+                "account_id",
+                "message",
+                "sid",
+                "unique_id"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "sid": {
+                    "type": "string"
+                },
+                "unique_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "webhookFacebook.Entry": {
+            "type": "object",
+            "required": [
+                "id",
+                "messaging",
+                "time"
+            ],
+            "properties": {
+                "hop_context": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/webhookFacebook.HopContext"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "messaging": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/webhookFacebook.Messaging"
+                    }
+                },
+                "time": {
+                    "type": "integer"
+                }
+            }
+        },
+        "webhookFacebook.HopContext": {
             "type": "object",
             "required": [
                 "app_id"
@@ -657,7 +1693,7 @@ const docTemplate = `{
                 }
             }
         },
-        "webhook.IncomingDTO": {
+        "webhookFacebook.IncomingDTO": {
             "type": "object",
             "required": [
                 "account",
@@ -665,8 +1701,7 @@ const docTemplate = `{
                 "additional",
                 "channel",
                 "data",
-                "tenant",
-                "test"
+                "tenant"
             ],
             "properties": {
                 "account": {
@@ -682,23 +1717,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "data": {
-                    "$ref": "#/definitions/webhook.Data"
+                    "$ref": "#/definitions/webhookFacebook.Data"
                 },
                 "tenant": {
                     "type": "string"
-                },
-                "test": {
-                    "type": "string",
-                    "enum": [
-                        "12",
-                        "3",
-                        "7",
-                        "5"
-                    ]
                 }
             }
         },
-        "webhook.Message": {
+        "webhookFacebook.Message": {
             "type": "object",
             "required": [
                 "mid"
@@ -707,21 +1733,21 @@ const docTemplate = `{
                 "attachments": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/webhook.Attachments"
+                        "$ref": "#/definitions/webhookFacebook.Attachments"
                     }
                 },
                 "mid": {
                     "type": "string"
                 },
                 "quick_reply": {
-                    "$ref": "#/definitions/webhook.QuickReply"
+                    "$ref": "#/definitions/webhookFacebook.QuickReply"
                 },
                 "text": {
                     "type": "string"
                 }
             }
         },
-        "webhook.MessagePostback": {
+        "webhookFacebook.MessagePostback": {
             "type": "object",
             "required": [
                 "payload",
@@ -736,7 +1762,7 @@ const docTemplate = `{
                 }
             }
         },
-        "webhook.Messaging": {
+        "webhookFacebook.Messaging": {
             "type": "object",
             "required": [
                 "recipient",
@@ -745,36 +1771,23 @@ const docTemplate = `{
             ],
             "properties": {
                 "message": {
-                    "$ref": "#/definitions/webhook.Message"
+                    "$ref": "#/definitions/webhookFacebook.Message"
                 },
                 "postback": {
-                    "$ref": "#/definitions/webhook.MessagePostback"
+                    "$ref": "#/definitions/webhookFacebook.MessagePostback"
                 },
                 "recipient": {
-                    "$ref": "#/definitions/webhook.Recipient"
+                    "$ref": "#/definitions/webhookFacebook.Recipient"
                 },
                 "sender": {
-                    "$ref": "#/definitions/webhook.Sender"
+                    "$ref": "#/definitions/webhookFacebook.Sender"
                 },
                 "timestamp": {
                     "type": "integer"
                 }
             }
         },
-        "webhook.Omnichannel": {
-            "type": "string",
-            "enum": [
-                "onx",
-                "on5",
-                "on4"
-            ],
-            "x-enum-varnames": [
-                "ONX",
-                "ON5",
-                "ON4"
-            ]
-        },
-        "webhook.QuickReply": {
+        "webhookFacebook.QuickReply": {
             "type": "object",
             "required": [
                 "payload"
@@ -785,7 +1798,7 @@ const docTemplate = `{
                 }
             }
         },
-        "webhook.Recipient": {
+        "webhookFacebook.Recipient": {
             "type": "object",
             "required": [
                 "id"
@@ -796,7 +1809,7 @@ const docTemplate = `{
                 }
             }
         },
-        "webhook.Sender": {
+        "webhookFacebook.Sender": {
             "type": "object",
             "required": [
                 "first_name",
@@ -815,6 +1828,220 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "profile_pic": {
+                    "type": "string"
+                }
+            }
+        },
+        "webhookLivechat.EndDTO": {
+            "type": "object",
+            "required": [
+                "account_id",
+                "unique_id"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "string"
+                },
+                "unique_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "webhookLivechat.IncomingDTO": {
+            "type": "object",
+            "required": [
+                "account",
+                "action",
+                "dateSend",
+                "tenant",
+                "user"
+            ],
+            "properties": {
+                "account": {
+                    "type": "string"
+                },
+                "action": {
+                    "type": "string"
+                },
+                "additional": {
+                    "$ref": "#/definitions/webhook.AttributeDTO"
+                },
+                "dateSend": {
+                    "type": "string"
+                },
+                "media": {
+                    "$ref": "#/definitions/webhookLivechat.Media"
+                },
+                "message": {},
+                "tenant": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/webhookLivechat.User"
+                }
+            }
+        },
+        "webhookLivechat.Media": {
+            "type": "object",
+            "required": [
+                "fileName",
+                "fileSize",
+                "mimeType",
+                "url"
+            ],
+            "properties": {
+                "fileName": {
+                    "type": "string"
+                },
+                "fileSize": {
+                    "type": "integer"
+                },
+                "mimeType": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "webhookLivechat.User": {
+            "type": "object",
+            "required": [
+                "g-recaptcha-response",
+                "token"
+            ],
+            "properties": {
+                "g-recaptcha-response": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "webhookTelegram.EndDTO": {
+            "type": "object",
+            "required": [
+                "account_id",
+                "message",
+                "sid",
+                "unique_id"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "sid": {
+                    "type": "string"
+                },
+                "unique_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "webhookWhatsapp.Contacts": {
+            "type": "object",
+            "required": [
+                "wa_id"
+            ],
+            "properties": {
+                "profile": {
+                    "$ref": "#/definitions/webhookWhatsapp.Profile"
+                },
+                "wa_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "webhookWhatsapp.EndDTO": {
+            "type": "object",
+            "required": [
+                "account_id",
+                "message",
+                "sid",
+                "unique_id"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "sid": {
+                    "type": "string"
+                },
+                "unique_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "webhookWhatsapp.IncomingDTO": {
+            "type": "object",
+            "required": [
+                "account_id",
+                "tenant_id",
+                "tunnel_url"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "string"
+                },
+                "additional": {
+                    "$ref": "#/definitions/webhook.AttributeDTO"
+                },
+                "contacts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/webhookWhatsapp.Contacts"
+                    }
+                },
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/webhookWhatsapp.Messages"
+                    }
+                },
+                "tenant_id": {
+                    "type": "string"
+                },
+                "tunnel_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "webhookWhatsapp.Messages": {
+            "type": "object",
+            "required": [
+                "timestamp",
+                "type"
+            ],
+            "properties": {
+                "timestamp": {
+                    "type": "integer"
+                },
+                "type": {
+                    "enum": [
+                        "text image contacts document interactive button location video sticker order unknown voice ephemeral"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/webhook.MessageType"
+                        }
+                    ]
+                }
+            }
+        },
+        "webhookWhatsapp.Profile": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
                     "type": "string"
                 }
             }

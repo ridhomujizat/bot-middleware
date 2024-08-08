@@ -32,7 +32,7 @@ func NewRabbitMQSubscriber(cfg config.RabbitMQConfig, allowNonJsonMessages bool)
 	}, nil
 }
 
-func (r *RabbitMQSubscriber) Subscribe(exchange, routingKey string, queueName string, allowNonJsonMessages bool, handleFunc func([]byte)) error {
+func (r *RabbitMQSubscriber) Subscribe(exchange, routingKey string, queueName string, allowNonJsonMessages bool, handleFunc func([]byte, amqp.Delivery)) error {
 	err := r.channel.ExchangeDeclare(
 		exchange,
 		"direct",
@@ -85,7 +85,7 @@ func (r *RabbitMQSubscriber) Subscribe(exchange, routingKey string, queueName st
 	go func() {
 		for msg := range msgs {
 			if allowNonJsonMessages || json.Valid(msg.Body) {
-				handleFunc(msg.Body)
+				handleFunc(msg.Body, msg)
 			} else {
 				log.Printf("Received non-JSON message: %s", string(msg.Body))
 			}

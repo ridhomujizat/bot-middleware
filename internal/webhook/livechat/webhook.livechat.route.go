@@ -10,7 +10,7 @@ func InitRouterLivechat(messagingGeneral messaging.MessagingGeneral, router *gin
 	livechatController := NewLivechatController(messagingGeneral)
 
 	// Group Endpoint for livechat
-	routeGroupLivechat := router.Group("/octopush/livechat")
+	routeGroupLivechat := router.Group("/octopushchat/livechat")
 	routeGroupLivechat.POST("/:botplatform/:omnichannel/:tenantId/:account", livechatController.Incoming)
 	routeGroupLivechat.POST("/:botplatform/:omnichannel/:tenantId/:account/handover", livechatController.Handover)
 	routeGroupLivechat.POST("/:botplatform/:omnichannel/:tenantId/:account/end", livechatController.End)

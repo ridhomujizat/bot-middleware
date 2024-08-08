@@ -25,7 +25,7 @@ func (f *FacebookService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 	pterm.Info.Println("queueName", queueName)
 
 	data := webhook.AttributeDTO{
-		UniqueID:           payload.Data.Entry[0].Messaging[0].Sender.ID,
+		UniqueId:           payload.Data.Entry[0].Messaging[0].Sender.ID,
 		CustName:           fmt.Sprintf("%s %s", payload.Data.Entry[0].Messaging[0].Sender.FirstName, payload.Data.Entry[0].Messaging[0].Sender.LastName),
 		BotPlatform:        params.BotPlatform,
 		Omnichannel:        params.Omnichannel,

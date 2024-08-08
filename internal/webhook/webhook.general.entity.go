@@ -120,7 +120,7 @@ type AttributeDTO struct {
 	Omnichannel        Omnichannel     `json:"omnichannel" validate:"required,oneof=onx on5 on4"`
 	TenantId           string          `json:"tenantId" validate:"required"`
 	AccountId          string          `json:"accountId" validate:"required"`
-	UniqueID           string          `json:"unique_id" validate:"required"`
+	UniqueId           string          `json:"unique_id" validate:"required"`
 	ChannelPlatform    ChannelPlatform `json:"channel_platform" validate:"required,oneof=socioconnect maytapi octopushchat official"`
 	ChannelSources     ChannelSources  `json:"channel_sources" validate:"required,oneof=whatsapp fbmessenger livechat telegram"`
 	ChannelID          ChannelID       `json:"channel_id" validate:"required,oneof=12 3 7 5"`
@@ -130,7 +130,7 @@ type AttributeDTO struct {
 	StreamID           string          `json:"stream_id,omitempty" validate:"omitempty"`
 	CustMessage        interface{}     `json:"cust_message,omitempty" validate:"omitempty"`
 	BotEndpoint        string          `json:"bot_endpoint" validate:"omitempty,url"`
-	BotAccount         string          `json:"bot_account" validate:"omitempty,string"`
+	BotAccount         string          `json:"bot_account" validate:"omitempty"`
 	SID                string          `json:"sid,omitempty" validate:"omitempty"`
 	NewSession         bool            `json:"new_session,omitempty" validate:"omitempty"`
 }
@@ -155,14 +155,14 @@ type ParamsDTO struct {
 type HandoverDTO struct {
 	SID         string      `json:"sid,omitempty" validate:"required"`
 	AccountID   string      `json:"account_id" validate:"required"`
-	UniqueID    string      `json:"unique_id" validate:"required"`
+	UniqueId    string      `json:"unique_id" validate:"required"`
 	Message     string      `json:"message,omitempty" validate:"required"`
 	CustMessage interface{} `json:"cust_message,omitempty" validate:"omitempty"`
 }
 
 type EndDTO struct {
 	AccountID string `json:"account_id" validate:"required"`
-	UniqueID  string `json:"unique_id" validate:"required"`
+	UniqueId  string `json:"unique_id" validate:"required"`
 	Message   string `json:"message,omitempty" validate:"required"`
 	SID       string `json:"sid,omitempty" validate:"required"`
 }

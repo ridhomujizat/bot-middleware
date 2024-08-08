@@ -10,6 +10,7 @@ import (
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/pterm/pterm"
+	"github.com/streadway/amqp"
 )
 
 type TelegramIncoming struct {
@@ -26,7 +27,7 @@ func NewTelegramIncoming(messagingGeneral messaging.MessagingGeneral, applicatio
 }
 
 func (t *TelegramIncoming) subscribe(exchange, routingKey, queueName string, allowNonJsonMessages bool) {
-	handleFunc := func(body []byte) {
+	handleFunc := func(body []byte, delivery amqp.Delivery) {
 		t.incomingHandler(body)
 	}
 
@@ -46,7 +47,7 @@ func (t *TelegramIncoming) incomingHandler(body []byte) {
 
 	var additional = payload.Additional
 
-	session, errSession := t.application.SessinonService.FindSession(additional.UniqueID, string(additional.ChannelPlatform), string(additional.ChannelSources), additional.TenantId)
+	session, errSession := t.application.SessionService.FindSession(additional.UniqueId, string(additional.ChannelPlatform), string(additional.ChannelSources), additional.TenantId)
 	if errSession != nil {
 		botserver, errBot := t.application.BotService.GetServerBot("libra_onx")
 		if errBot != nil {
@@ -58,8 +59,8 @@ func (t *TelegramIncoming) incomingHandler(body []byte) {
 			log.Fatalf("Failed to generate NanoID: %v", err)
 		}
 
-		payload.Additional.BotEndpoint = botserver.ServerAddr
-		payload.Additional.BotAccount = botserver.ServerAcco
+		payload.Additional.BotEndpoint = botserver.ServerAddress
+		payload.Additional.BotAccount = botserver.ServerAccount
 		payload.Additional.SID = sid
 		payload.Additional.NewSession = true
 	} else {

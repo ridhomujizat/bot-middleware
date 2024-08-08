@@ -23,3 +23,19 @@ func (a *BotService) GetServerBot(name string) (*ServerBot, error) {
 	}
 	return &server, nil
 }
+
+func (a *BotService) GetAndUpdateBotServer() (*ServerBot, error) {
+	var server ServerBot
+
+	if err := a.db.Where("is_active = ?", true).Order("total ASC").First(&server).Error; err != nil {
+		return nil, err
+	}
+
+	server.Total = server.Total + 1
+
+	if err := a.db.Save(&server).Error; err != nil {
+		return nil, err
+	}
+
+	return &server, nil
+}

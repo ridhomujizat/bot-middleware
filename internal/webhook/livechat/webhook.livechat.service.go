@@ -38,7 +38,7 @@ func (l *LivechatService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 	pterm.Info.Println("queueName", queueName)
 
 	data := webhook.AttributeDTO{
-		UniqueID:           payload.User.Token,
+		UniqueId:           payload.User.Token,
 		CustName:           "",
 		BotPlatform:        params.BotPlatform,
 		Omnichannel:        params.Omnichannel,

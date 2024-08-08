@@ -18,14 +18,14 @@ type IncomingDTO struct {
 	Tenant     string               `json:"tenant" validate:"required"`
 	Account    string               `json:"account" validate:"required"`
 	Action     string               `json:"action" validate:"required"`
-	DateSend   string               `json:"dateSend" validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
+	DateSend   string               `json:"dateSend" validate:"required"`
 	Message    interface{}          `json:"message" validate:"omitempty"`
 	Media      Media                `json:"media" validate:"omitempty"`
 	User       User                 `json:"user" validate:"required"`
-	Additional webhook.AttributeDTO `json:"additional" validate:"required"`
+	Additional webhook.AttributeDTO `json:"additional" validate:"omitempty"`
 }
 
 type EndDTO struct {
 	AccountID string `json:"account_id" validate:"required"`
-	UniqueID  string `json:"unique_id" validate:"required"`
+	UniqueId  string `json:"unique_id" validate:"required"`
 }

@@ -26,7 +26,7 @@ func (w *WhatsappService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 	pterm.Info.Println("payloaddddddddddddddddddddddddddddddddddddd", payload)
 
 	data := webhook.AttributeDTO{
-		UniqueID:           payload.Contacts[0].WaId,
+		UniqueId:           payload.Contacts[0].WaId,
 		CustName:           payload.Contacts[0].Profile.Name,
 		BotPlatform:        params.BotPlatform,
 		Omnichannel:        params.Omnichannel,
@@ -102,7 +102,7 @@ func (w *WhatsappService) Commerce(params webhook.ParamsDTO, payload IncomingDTO
 	}
 
 	data := webhook.AttributeDTO{
-		UniqueID:           uniqueID,
+		UniqueId:           uniqueID,
 		CustName:           custName,
 		BotPlatform:        params.BotPlatform,
 		Omnichannel:        params.Omnichannel,

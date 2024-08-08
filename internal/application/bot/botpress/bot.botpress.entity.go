@@ -151,7 +151,7 @@ type Session struct {
 	Workflows      Slots         `json:"workflows"`
 	Slots          Slots         `json:"slots"`
 	Sid            string        `json:"sid"`
-	UniqueID       string        `json:"unique_id"`
+	UniqueId       string        `json:"unique_id"`
 	AccountID      string        `json:"accountId"`
 	ChannelSources string        `json:"channel_sources"`
 	Name           string        `json:"name"`

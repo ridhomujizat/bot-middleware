@@ -15,6 +15,7 @@ import (
 	webhookWhatsapp "bot-middleware/internal/webhook/whatsapp"
 
 	webhookTole "bot-middleware/internal/webhook/tole"
+	workerLivechat "bot-middleware/internal/worker/livechat"
 	workerTelegram "bot-middleware/internal/worker/telegram"
 	"errors"
 	"fmt"
@@ -121,9 +122,9 @@ func initDB() *application.Services {
 	}
 
 	services := &application.Services{
-		AccountService:  appAccount.NewAccountService(db),
-		SessinonService: appSession.NewSessionService(db),
-		BotService:      appBot.NewBotService(db),
+		AccountService: appAccount.NewAccountService(db),
+		SessionService: appSession.NewSessionService(db),
+		BotService:     appBot.NewBotService(db),
 	}
 	return services
 
@@ -132,5 +133,5 @@ func initDB() *application.Services {
 func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services) {
 	workerTelegram.NewTelegramIncoming(messagingGeneral, applicationService, "exchange", "incoming", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false)
 	workerTelegram.NewTelegramBotProcess(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false)
-	// workerTole.NewToleService(messagingGeneral, "exchange", "routingKey", "incoming:tole", false)
+	workerLivechat.NewLivechatService(messagingGeneral, applicationService, "exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_INITIATE"), false)
 }

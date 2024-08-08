@@ -7,8 +7,8 @@ import (
 )
 
 type Services struct {
-	AccountService  *appAccount.AccountService
-	SessinonService *appSession.SessionService
-	BotService      *appBot.BotService
+	AccountService *appAccount.AccountService
+	SessionService *appSession.SessionService
+	BotService     *appBot.BotService
 	// SessionService *session.SessionService
 }

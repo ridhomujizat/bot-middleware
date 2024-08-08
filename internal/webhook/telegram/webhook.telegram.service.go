@@ -26,7 +26,7 @@ func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload IncomingTel
 	pterm.Info.Println("queueName", queueName)
 
 	data := webhook.AttributeDTO{
-		// UniqueID:           payload.Data.Entry[0].Messaging[0].Sender.ID,
+		// UniqueId:           payload.Data.Entry[0].Messaging[0].Sender.ID,
 		BotPlatform:        params.BotPlatform,
 		Omnichannel:        params.Omnichannel,
 		TenantId:           params.TenantId,
@@ -47,9 +47,9 @@ func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload IncomingTel
 			lastName = "" // Provide a default value or handle it appropriately
 		}
 		custName := fmt.Sprintf("%s %s", payload.CallbackQuery.From.FirstName, lastName)
-		UniqueID := fmt.Sprintf("%d", payload.CallbackQuery.From.ID)
+		UniqueId := fmt.Sprintf("%d", payload.CallbackQuery.From.ID)
 		data.CustName = custName
-		data.UniqueID = UniqueID
+		data.UniqueId = UniqueId
 		data.CustMessage = payload.CallbackQuery.Message.Text
 		data.DateTimestamp = time.Unix(int64(payload.CallbackQuery.Message.Date), 0).Format("2006-01-02 15:04:05")
 	} else {
@@ -60,8 +60,8 @@ func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload IncomingTel
 			lastName = "" // Provide a default value or handle it appropriately
 		}
 		custName := fmt.Sprintf("%s %s", payload.Message.From.FirstName, lastName)
-		UniqueID := fmt.Sprintf("%d", payload.Message.From.ID)
-		data.UniqueID = UniqueID
+		UniqueId := fmt.Sprintf("%d", payload.Message.From.ID)
+		data.UniqueId = UniqueId
 		data.CustName = custName
 		data.CustMessage = payload.Message.Text
 		data.DateTimestamp = time.Unix(int64(payload.Message.Date), 0).Format("2006-01-02 15:04:05")
