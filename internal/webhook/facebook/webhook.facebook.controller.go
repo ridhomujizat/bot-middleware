@@ -4,6 +4,7 @@ import (
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/util"
 	"bot-middleware/internal/webhook"
+	"bot-middleware/internal/entities"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -49,8 +50,8 @@ func (f *FacebookController) Incoming(ctx *gin.Context) {
 	}
 
 	params := webhook.ParamsDTO{
-		BotPlatform: webhook.BotPlatform(botplatform),
-		Omnichannel: webhook.Omnichannel(omnichannel),
+		BotPlatform: entities.BotPlatform(botplatform),
+		Omnichannel: entities.Omnichannel(omnichannel),
 		TenantId:    tenantId,
 		Account:     account,
 	}
@@ -101,8 +102,8 @@ func (f *FacebookController) Handover(ctx *gin.Context) {
 	}
 
 	params := webhook.ParamsDTO{
-		BotPlatform: webhook.BotPlatform(botplatform),
-		Omnichannel: webhook.Omnichannel(omnichannel),
+		BotPlatform: entities.BotPlatform(botplatform),
+		Omnichannel: entities.Omnichannel(omnichannel),
 		TenantId:    tenantId,
 		Account:     account,
 	}
@@ -153,8 +154,8 @@ func (f *FacebookController) End(ctx *gin.Context) {
 	}
 
 	params := webhook.ParamsDTO{
-		BotPlatform: webhook.BotPlatform(botplatform),
-		Omnichannel: webhook.Omnichannel(omnichannel),
+		BotPlatform: entities.BotPlatform(botplatform),
+		Omnichannel: entities.Omnichannel(omnichannel),
 		TenantId:    tenantId,
 		Account:     account,
 	}

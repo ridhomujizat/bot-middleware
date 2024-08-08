@@ -5,7 +5,6 @@ import (
 	"bot-middleware/internal/pkg/util"
 
 	"github.com/pterm/pterm"
-	"github.com/streadway/amqp"
 )
 
 type ToleService struct {
@@ -20,9 +19,10 @@ func NewToleService(messagingGeneral messaging.MessagingGeneral, exchange, routi
 }
 
 func (t *ToleService) subscribe(exchange, routingKey, queueName string, allowNonJsonMessages bool) {
-	handleFunc := func(body []byte, delivery amqp.Delivery) {
+	handleFunc := func(body []byte) error {
 		pterm.Info.Printfln("Received a message: %s", body)
 		// Business Logic
+		return nil
 	}
 
 	go func() {

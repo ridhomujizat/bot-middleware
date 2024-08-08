@@ -2,15 +2,14 @@ package workerTelegram
 
 import (
 	"bot-middleware/internal/application"
-	"bot-middleware/internal/entities"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/util"
+	webhookeTelegram "bot-middleware/internal/webhook/telegram"
 	"fmt"
 	"log"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/pterm/pterm"
-	"github.com/streadway/amqp"
 )
 
 type TelegramIncoming struct {
@@ -27,8 +26,9 @@ func NewTelegramIncoming(messagingGeneral messaging.MessagingGeneral, applicatio
 }
 
 func (t *TelegramIncoming) subscribe(exchange, routingKey, queueName string, allowNonJsonMessages bool) {
-	handleFunc := func(body []byte, delivery amqp.Delivery) {
+	handleFunc := func(body []byte) error {
 		t.incomingHandler(body)
+		return nil
 	}
 
 	go func() {
@@ -40,7 +40,7 @@ func (t *TelegramIncoming) subscribe(exchange, routingKey, queueName string, all
 
 func (t *TelegramIncoming) incomingHandler(body []byte) {
 
-	payload, errBody := entities.UnmarshalTelegramDTO(body)
+	payload, errBody := webhookeTelegram.UnmarshalTelegramDTO(body)
 	if errBody != nil {
 		util.HandleAppError(errBody, "unmarshal telegram dto", "IncomingHandler", false)
 	}

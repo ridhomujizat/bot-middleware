@@ -1,6 +1,7 @@
 package webhookFacebook
 
 import (
+	"bot-middleware/internal/entities"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/util"
 	"bot-middleware/internal/webhook"
@@ -31,9 +32,9 @@ func (f *FacebookService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 		Omnichannel:        params.Omnichannel,
 		TenantId:           params.TenantId,
 		AccountId:          payload.Account,
-		ChannelPlatform:    webhook.SOCIOCONNECT,
-		ChannelSources:     webhook.FBMESSENGER,
-		ChannelID:          webhook.FBMESSENGER_ID,
+		ChannelPlatform:    entities.SOCIOCONNECT,
+		ChannelSources:     entities.FBMESSENGER,
+		ChannelID:          entities.FBMESSENGER_ID,
 		MiddlewareEndpoint: fmt.Sprintf("%s/socioconnect/fbmessenger/%s/%s", util.GodotEnv("BASE_URL"), params.Omnichannel, params.TenantId),
 		DateTimestamp:      time.Unix(int64(payload.Data.Entry[0].Messaging[0].Timestamp/1000), 0).Format("2006-01-02 15:04:05"),
 		CustMessage:        payload.Data.Entry[0].Messaging[0].Message.Text,
@@ -53,8 +54,8 @@ func (f *FacebookService) Handover(params webhook.ParamsDTO, payload webhook.Han
 	queueName := fmt.Sprintf("%s:%s:%s:%s:handover", params.Omnichannel, params.TenantId, util.GodotEnv("FBM_QUEUE_NAME"), payload.AccountID)
 	pterm.Info.Println("queueName", queueName)
 
-	additional := map[string]webhook.ChannelPlatform{
-		"channel_platform": webhook.SOCIOCONNECT,
+	additional := map[string]entities.ChannelPlatform{
+		"channel_platform": entities.SOCIOCONNECT,
 	}
 
 	data := map[string]interface{}{
@@ -77,8 +78,8 @@ func (f *FacebookService) End(params webhook.ParamsDTO, payload EndDTO) (interfa
 	queueName := fmt.Sprintf("%s:%s:%s:%s:end", params.Omnichannel, params.TenantId, util.GodotEnv("FBM_QUEUE_NAME"), payload.AccountID)
 	pterm.Info.Println("queueName", queueName)
 
-	additional := map[string]webhook.ChannelPlatform{
-		"channel_platform": webhook.SOCIOCONNECT,
+	additional := map[string]entities.ChannelPlatform{
+		"channel_platform": entities.SOCIOCONNECT,
 	}
 
 	data := map[string]interface{}{

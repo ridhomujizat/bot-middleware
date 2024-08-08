@@ -19,7 +19,7 @@ type IncomingDTO struct {
 	Account    string               `json:"account" validate:"required"`
 	Action     string               `json:"action" validate:"required"`
 	DateSend   string               `json:"dateSend" validate:"required"`
-	Message    interface{}          `json:"message" validate:"omitempty"`
+	Message    string               `json:"message" validate:"omitempty"`
 	Media      Media                `json:"media" validate:"omitempty"`
 	User       User                 `json:"user" validate:"required"`
 	Additional webhook.AttributeDTO `json:"additional" validate:"omitempty"`

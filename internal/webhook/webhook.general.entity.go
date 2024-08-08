@@ -1,58 +1,7 @@
 package webhook
 
-type BotPlatform string
-type Omnichannel string
-type ChannelSources string
-type ChannelID int
-type ChannelPlatform string
-type MessageType string
+import 	"bot-middleware/internal/entities"
 
-const (
-	WHATSAPP    ChannelSources = "whatsapp"
-	FBMESSENGER ChannelSources = "fbmessenger"
-	LIVECHAT    ChannelSources = "livechat"
-	TELEGRAM    ChannelSources = "telegram"
-)
-
-const (
-	WHATSAPP_ID    ChannelID = 12
-	LIVECHAT_ID    ChannelID = 3
-	FBMESSENGER_ID ChannelID = 7
-	TELEGRAM_ID    ChannelID = 5
-)
-
-const (
-	SOCIOCONNECT ChannelPlatform = "socioconnect"
-	MAYTAPI      ChannelPlatform = "maytapi"
-	OCTOPUSHCHAT ChannelPlatform = "octopushchat"
-	OFFICIAL     ChannelPlatform = "official"
-)
-
-const (
-	BOTPRESS BotPlatform = "botpress"
-)
-
-const (
-	ONX Omnichannel = "onx"
-	ON5 Omnichannel = "on5"
-	ON4 Omnichannel = "on4"
-)
-
-const (
-	TEXT        MessageType = "text"
-	IMAGE       MessageType = "image"
-	CONTACTS    MessageType = "contacts"
-	DOCUMENT    MessageType = "document"
-	INTERACTIVE MessageType = "interactive"
-	BUTTON      MessageType = "button"
-	LOCATION    MessageType = "location"
-	VIDEO       MessageType = "video"
-	STICKER     MessageType = "sticker"
-	ORDER       MessageType = "order"
-	UNKNOWN     MessageType = "unknown"
-	VOICE       MessageType = "voice"
-	EPHEMERAL   MessageType = "ephemeral"
-)
 
 type HopContext struct {
 	AppID    int    `json:"app_id" validate:"required,number"`
@@ -116,14 +65,14 @@ type Data struct {
 }
 
 type AttributeDTO struct {
-	BotPlatform        BotPlatform     `json:"botplatform" validate:"required,oneof=botpress"`
-	Omnichannel        Omnichannel     `json:"omnichannel" validate:"required,oneof=onx on5 on4"`
+	BotPlatform        entities.BotPlatform     `json:"botplatform" validate:"required,oneof=botpress"`
+	Omnichannel        entities.Omnichannel     `json:"omnichannel" validate:"required,oneof=onx on5 on4"`
 	TenantId           string          `json:"tenantId" validate:"required"`
 	AccountId          string          `json:"accountId" validate:"required"`
 	UniqueId           string          `json:"unique_id" validate:"required"`
-	ChannelPlatform    ChannelPlatform `json:"channel_platform" validate:"required,oneof=socioconnect maytapi octopushchat official"`
-	ChannelSources     ChannelSources  `json:"channel_sources" validate:"required,oneof=whatsapp fbmessenger livechat telegram"`
-	ChannelID          ChannelID       `json:"channel_id" validate:"required,oneof=12 3 7 5"`
+	ChannelPlatform    entities.ChannelPlatform `json:"channel_platform" validate:"required,oneof=socioconnect maytapi octopushchat official"`
+	ChannelSources     entities.ChannelSources  `json:"channel_sources" validate:"required,oneof=whatsapp fbmessenger livechat telegram"`
+	ChannelID          entities.ChannelID       `json:"channel_id" validate:"required,oneof=12 3 7 5"`
 	DateTimestamp      string          `json:"date_timestamp" validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
 	MiddlewareEndpoint string          `json:"middleware_endpoint" validate:"required,url"`
 	CustName           string          `json:"cust_name" validate:"required"`
@@ -133,6 +82,7 @@ type AttributeDTO struct {
 	BotAccount         string          `json:"bot_account" validate:"omitempty"`
 	SID                string          `json:"sid,omitempty" validate:"omitempty"`
 	NewSession         bool            `json:"new_session,omitempty" validate:"omitempty"`
+	BotResponse        interface{}     `json:"botResponse,omitempty" validate:"omitempty"`
 }
 
 type IncomingDTO struct {
@@ -146,10 +96,10 @@ type IncomingDTO struct {
 }
 
 type ParamsDTO struct {
-	Omnichannel Omnichannel `json:"omnichannel" validate:"required,oneof=onx on5 on4"`
+	Omnichannel entities.Omnichannel `json:"omnichannel" validate:"required,oneof=onx on5 on4"`
 	TenantId    string      `json:"tenantId" validate:"required"`
 	Account     string      `json:"account,omitempty" validate:"omitempty,required"`
-	BotPlatform BotPlatform `json:"botplatform" validate:"required,oneof=botpress"`
+	BotPlatform entities.BotPlatform `json:"botplatform" validate:"required,oneof=botpress"`
 }
 
 type HandoverDTO struct {

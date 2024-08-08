@@ -23,10 +23,11 @@ func (r *IncomingTelegramDTO) Marshal() ([]byte, error) {
 }
 
 type IncomingTelegramDTO struct {
-	UpdateID      int64                  `json:"update_id"`
-	Message       TelegrampayloadMessage `json:"message"`
-	CallbackQuery *CallbackQuery         `json:"callback_query"`
-	Additional    *webhook.AttributeDTO  `json:"additional"`
+	UpdateID      int64                   `json:"update_id"`
+	Message       *TelegrampayloadMessage `json:"message"`
+	CallbackQuery *CallbackQuery          `json:"callback_query"`
+	Additional    *webhook.AttributeDTO   `json:"additional"`
+	BotResponse   *map[string]interface{} `json:"bot_response"`
 }
 
 type CallbackQuery struct {

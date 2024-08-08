@@ -1,6 +1,7 @@
 package webhookLivechat
 
 import (
+	"bot-middleware/internal/entities"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/util"
 	"bot-middleware/internal/webhook"
@@ -44,9 +45,9 @@ func (l *LivechatService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 		Omnichannel:        params.Omnichannel,
 		TenantId:           params.TenantId,
 		AccountId:          payload.Account,
-		ChannelPlatform:    webhook.SOCIOCONNECT,
-		ChannelSources:     webhook.LIVECHAT,
-		ChannelID:          webhook.LIVECHAT_ID,
+		ChannelPlatform:    entities.SOCIOCONNECT,
+		ChannelSources:     entities.LIVECHAT,
+		ChannelID:          entities.LIVECHAT_ID,
 		MiddlewareEndpoint: fmt.Sprintf("%s/octopushchat/livechat/%s/%s", util.GodotEnv("BASE_URL"), params.Omnichannel, params.TenantId),
 		DateTimestamp:      payload.DateSend,
 		CustMessage:        payload,
@@ -68,8 +69,8 @@ func (l *LivechatService) Handover(params webhook.ParamsDTO, payload webhook.Han
 	queueName := fmt.Sprintf("%s:%s:%s:%s:handover", params.Omnichannel, params.TenantId, util.GodotEnv("LIVECHAT_QUEUE_NAME"), payload.AccountID)
 	pterm.Info.Println("queueName", queueName)
 
-	additional := map[string]webhook.ChannelPlatform{
-		"channel_platform": webhook.SOCIOCONNECT,
+	additional := map[string]entities.ChannelPlatform{
+		"channel_platform": entities.SOCIOCONNECT,
 	}
 
 	data := map[string]interface{}{
@@ -92,8 +93,8 @@ func (l *LivechatService) End(params webhook.ParamsDTO, payload EndDTO) (interfa
 	queueName := fmt.Sprintf("%s:%s:%s:%s:end", params.Omnichannel, params.TenantId, util.GodotEnv("TELEGRAM_QUEUE_NAME"), payload.AccountID)
 	pterm.Info.Println("queueName", queueName)
 
-	additional := map[string]webhook.ChannelPlatform{
-		"channel_platform": webhook.OFFICIAL,
+	additional := map[string]entities.ChannelPlatform{
+		"channel_platform": entities.OFFICIAL,
 	}
 
 	data := map[string]interface{}{
