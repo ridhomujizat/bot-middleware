@@ -1,6 +1,9 @@
 package webhookWhatsapp
 
-import "bot-middleware/internal/webhook"
+import (
+	"bot-middleware/internal/webhook"
+	"bot-middleware/internal/entities"
+)
 
 type Profile struct {
 	Name string `json:"name" validate:"required"`
@@ -13,7 +16,7 @@ type Contacts struct {
 
 type Messages struct {
 	Timestamp int                 `json:"timestamp" validate:"required"`
-	Type      webhook.MessageType `json:"type" validate:"required,oneof='text image contacts document interactive button location video sticker order unknown voice ephemeral'"`
+	Type      entities.MessageType `json:"type" validate:"required,oneof='text image contacts document interactive button location video sticker order unknown voice ephemeral'"`
 }
 
 type IncomingDTO struct {

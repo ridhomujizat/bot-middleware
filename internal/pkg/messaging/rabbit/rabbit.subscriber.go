@@ -14,7 +14,7 @@ type RabbitMQSubscriber struct {
 	channel    *amqp.Channel
 }
 
-func NewRabbitMQSubscriber(cfg config.RabbitMQConfig, allowNonJsonMessages bool) (*RabbitMQSubscriber, error) {
+func NewRabbitMQSubscriber(cfg config.RabbitMQConfig) (*RabbitMQSubscriber, error) {
 	conn, err := amqp.Dial(cfg.URL)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func NewRabbitMQSubscriber(cfg config.RabbitMQConfig, allowNonJsonMessages bool)
 	}, nil
 }
 
-func (r *RabbitMQSubscriber) Subscribe(exchange, routingKey string, queueName string, allowNonJsonMessages bool, handleFunc func([]byte, amqp.Delivery)) error {
+func (r *RabbitMQSubscriber) Subscribe(exchange, routingKey string, queueName string, allowNonJsonMessages bool, handleFunc func([]byte) error) error {
 	err := r.channel.ExchangeDeclare(
 		exchange,
 		"direct",
@@ -72,7 +72,7 @@ func (r *RabbitMQSubscriber) Subscribe(exchange, routingKey string, queueName st
 	msgs, err := r.channel.Consume(
 		q.Name,
 		"",
-		true,
+		false,
 		false,
 		false,
 		false,
@@ -85,9 +85,16 @@ func (r *RabbitMQSubscriber) Subscribe(exchange, routingKey string, queueName st
 	go func() {
 		for msg := range msgs {
 			if allowNonJsonMessages || json.Valid(msg.Body) {
-				handleFunc(msg.Body, msg)
+				err := handleFunc(msg.Body)
+				if err != nil {
+					log.Printf("Failed to process message: %v. Requeuing...\n", err)
+					msg.Nack(false, true)
+				} else {
+					msg.Ack(false)
+				}
 			} else {
 				log.Printf("Received non-JSON message: %s", string(msg.Body))
+				msg.Nack(false, true)
 			}
 		}
 	}()

@@ -2,6 +2,7 @@ package webhookWhatsapp
 
 import (
 	"bot-middleware/internal/pkg/messaging"
+	"bot-middleware/internal/entities"
 	"bot-middleware/internal/pkg/util"
 	"bot-middleware/internal/webhook"
 	"fmt"
@@ -32,9 +33,9 @@ func (w *WhatsappService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 		Omnichannel:        params.Omnichannel,
 		TenantId:           params.TenantId,
 		AccountId:          payload.AccountId,
-		ChannelPlatform:    webhook.SOCIOCONNECT,
-		ChannelSources:     webhook.WHATSAPP,
-		ChannelID:          webhook.WHATSAPP_ID,
+		ChannelPlatform:    entities.SOCIOCONNECT,
+		ChannelSources:     entities.WHATSAPP,
+		ChannelID:          entities.WHATSAPP_ID,
 		MiddlewareEndpoint: fmt.Sprintf("%s/socioconnect/whatsapp/%s/%s", util.GodotEnv("BASE_URL"), params.Omnichannel, params.TenantId),
 		DateTimestamp:      time.Unix(0, int64(payload.Messages[0].Timestamp)).Format("2006-01-02 15:04:05"),
 	}
@@ -56,7 +57,7 @@ func (w *WhatsappService) End(params webhook.ParamsDTO, payload EndDTO) (interfa
 	data := map[string]interface{}{
 		"payload":    payload,
 		"params":     params,
-		"additional": map[string]interface{}{"channel_platform": webhook.SOCIOCONNECT},
+		"additional": map[string]interface{}{"channel_platform": entities.SOCIOCONNECT},
 	}
 
 	err := w.messagingGeneral.Publish(queueName, data)
@@ -76,7 +77,7 @@ func (w *WhatsappService) Handover(params webhook.ParamsDTO, payload webhook.Han
 	data := map[string]interface{}{
 		"payload":    payload,
 		"params":     params,
-		"additional": map[string]interface{}{"channel_platform": webhook.SOCIOCONNECT},
+		"additional": map[string]interface{}{"channel_platform": entities.SOCIOCONNECT},
 	}
 
 	pterm.Info.Println("handover data", data)
@@ -108,9 +109,9 @@ func (w *WhatsappService) Commerce(params webhook.ParamsDTO, payload IncomingDTO
 		Omnichannel:        params.Omnichannel,
 		TenantId:           "wa_commerce",
 		AccountId:          payload.AccountId,
-		ChannelPlatform:    webhook.SOCIOCONNECT,
-		ChannelSources:     webhook.WHATSAPP,
-		ChannelID:          webhook.WHATSAPP_ID,
+		ChannelPlatform:    entities.SOCIOCONNECT,
+		ChannelSources:     entities.WHATSAPP,
+		ChannelID:          entities.WHATSAPP_ID,
 		MiddlewareEndpoint: fmt.Sprintf("%s/socioconnect/whatsapp/commerce/%s/%s", util.GodotEnv("BASE_URL"), params.Omnichannel, params.TenantId),
 		DateTimestamp:      time.Unix(int64(payload.Messages[0].Timestamp), 0).Format("2006-01-02 15:04:05"),
 	}
@@ -124,7 +125,7 @@ func (w *WhatsappService) Commerce(params webhook.ParamsDTO, payload IncomingDTO
 	pterm.Info.Println("payload", payload)
 
 	queueName := fmt.Sprintf("%s:wa_commerce:%s:%s", params.Omnichannel, util.GodotEnv("WA_QUEUE_NAME"), payload.AccountId)
-	if payload.Messages[0].Type == webhook.ORDER {
+	if payload.Messages[0].Type == entities.ORDER {
 		queueName = fmt.Sprintf("%s:wa_commerce:%s:%s:order_received", params.Omnichannel, util.GodotEnv("WA_QUEUE_NAME"), payload.AccountId)
 	}
 

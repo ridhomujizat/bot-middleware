@@ -1,6 +1,7 @@
 package webhookLivechat
 
 import (
+	"bot-middleware/internal/entities"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/util"
 	"bot-middleware/internal/webhook"
@@ -49,8 +50,8 @@ func (l *LivechatController) Incoming(ctx *gin.Context) {
 	}
 
 	params := webhook.ParamsDTO{
-		BotPlatform: webhook.BotPlatform(botplatform),
-		Omnichannel: webhook.Omnichannel(omnichannel),
+		BotPlatform: entities.BotPlatform(botplatform),
+		Omnichannel: entities.Omnichannel(omnichannel),
 		TenantId:    tenantId,
 		Account:     account,
 	}
@@ -101,8 +102,8 @@ func (l *LivechatController) Handover(ctx *gin.Context) {
 	}
 
 	params := webhook.ParamsDTO{
-		BotPlatform: webhook.BotPlatform(botplatform),
-		Omnichannel: webhook.Omnichannel(omnichannel),
+		BotPlatform: entities.BotPlatform(botplatform),
+		Omnichannel: entities.Omnichannel(omnichannel),
 		TenantId:    tenantId,
 		Account:     account,
 	}
@@ -153,8 +154,8 @@ func (l *LivechatController) End(ctx *gin.Context) {
 	}
 
 	params := webhook.ParamsDTO{
-		BotPlatform: webhook.BotPlatform(botplatform),
-		Omnichannel: webhook.Omnichannel(omnichannel),
+		BotPlatform: entities.BotPlatform(botplatform),
+		Omnichannel: entities.Omnichannel(omnichannel),
 		TenantId:    tenantId,
 		Account:     account,
 	}

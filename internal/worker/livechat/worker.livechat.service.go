@@ -2,6 +2,7 @@ package workerLivechat
 
 import (
 	"bot-middleware/internal/application"
+	"bot-middleware/internal/application/bot/botpress"
 	appSession "bot-middleware/internal/application/session"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/util"
@@ -9,7 +10,6 @@ import (
 	"encoding/json"
 
 	"github.com/pterm/pterm"
-	"github.com/streadway/amqp"
 )
 
 type LivechatService struct {
@@ -17,25 +17,14 @@ type LivechatService struct {
 	application      *application.Services
 }
 
-func NewLivechatService(messagingGeneral messaging.MessagingGeneral, application *application.Services, exchange, routingKey, queueName string, allowNonJsonMessages bool) {
-	service := &LivechatService{
+func NewLivechatService(messagingGeneral messaging.MessagingGeneral, application *application.Services) *LivechatService {
+	return &LivechatService{
 		messagingGeneral: messagingGeneral,
 		application:      application,
 	}
-	service.subscribe(exchange, routingKey, queueName, allowNonJsonMessages)
 }
 
-func (l *LivechatService) subscribe(exchange, routingKey, queueName string, allowNonJsonMessages bool) {
-	handleFunc := func(body []byte, delivery amqp.Delivery) {
-		err := l.process(body)
-		if err != nil {
-			pterm.Error.Printf("Failed to process message: %v. Requeuing...\n", err)
-			delivery.Nack(false, true)
-		} else {
-			delivery.Ack(false)
-		}
-	}
-
+func (l *LivechatService) Subscribe(exchange, routingKey, queueName string, allowNonJsonMessages bool, handleFunc func([]byte) error) {
 	go func() {
 		if err := l.messagingGeneral.Subscribe(exchange, routingKey, queueName, allowNonJsonMessages, handleFunc); err != nil {
 			util.HandleAppError(err, "subscribe", "Subscribe", true)
@@ -43,16 +32,16 @@ func (l *LivechatService) subscribe(exchange, routingKey, queueName string, allo
 	}()
 }
 
-func (l *LivechatService) process(body []byte) error {
+func (l *LivechatService) Process(body []byte) error {
 	var msg webhookLivechat.IncomingDTO
 	if err := json.Unmarshal(body, &msg); err != nil {
-		util.HandleAppError(err, "Livechat process", "Unmarshal", true)
+		util.HandleAppError(err, "Livechat process", "Unmarshal", false)
 		return err
 	}
 
 	session, err := l.application.SessionService.FindSession(msg.Additional.UniqueId, string(msg.Additional.ChannelPlatform), string(msg.Additional.ChannelSources), msg.Additional.TenantId)
 	if err != nil {
-		util.HandleAppError(err, "Livechat process", "FindSession", true)
+		util.HandleAppError(err, "Livechat process", "FindSession", false)
 		return err
 	}
 
@@ -68,7 +57,7 @@ func (l *LivechatService) process(body []byte) error {
 func (l *LivechatService) handleNewSession(msg *webhookLivechat.IncomingDTO) error {
 	result, err := l.application.BotService.GetAndUpdateBotServer()
 	if err != nil {
-		util.HandleAppError(err, "Livechat process", "GetAndUpdateBotServer", true)
+		util.HandleAppError(err, "Livechat process", "GetAndUpdateBotServer", false)
 		return err
 	}
 
@@ -76,7 +65,7 @@ func (l *LivechatService) handleNewSession(msg *webhookLivechat.IncomingDTO) err
 	msg.Additional.BotAccount = result.ServerAccount
 	sid, err := util.GenerateId()
 	if err != nil {
-		util.HandleAppError(err, "Livechat process", "GenerateId", true)
+		util.HandleAppError(err, "Livechat process", "GenerateId", false)
 		return err
 	}
 
@@ -95,4 +84,65 @@ func (l *LivechatService) handleExistingSession(msg *webhookLivechat.IncomingDTO
 		return l.messagingGeneral.Publish(util.GodotEnv("QUEUE_LIVECHAT_FORWARD"), *msg)
 	}
 	return l.messagingGeneral.Publish(util.GodotEnv("QUEUE_LIVECHAT_BOT"), *msg)
+}
+
+func (l *LivechatService) InitiateBot(body []byte) error {
+	var msg webhookLivechat.IncomingDTO
+	if err := json.Unmarshal(body, &msg); err != nil {
+		util.HandleAppError(err, "initiateBot", "Unmarshal", false)
+		return err
+	}
+
+	additional := msg.Additional
+	switch additional.ChannelPlatform {
+	case "OCTOPUSHCHAT":
+		if err := l.processBotOctopushchat(&msg); err != nil {
+			util.HandleAppError(err, "initiateBot", "processBotOctopushchat", false)
+			return err
+		}
+	default:
+		return nil
+	}
+	return nil
+}
+
+func (l *LivechatService) processBotOctopushchat(msg *webhookLivechat.IncomingDTO) error {
+	additional := msg.Additional
+	switch additional.BotPlatform {
+	// case entities.BOTPRESS:
+	// 	botPayload, err := l.application.BotService.Botpress.BPTLGOF(*msg)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	if botPayload != nil {
+	// 		return l.processBotpress(msg, botPayload)
+	// 	}
+	}
+	return nil
+}
+
+func (l *LivechatService) processBotpress(msg *webhookLivechat.IncomingDTO, botPayload *botpress.AskPayloadBotpresDTO) error {
+	// additional := msg.Additional
+
+	// loginResult, err := l.application.BotService.Botpress.Login(additional.BotAccount, additional.TenantId)
+	// if err != nil {
+	// 	util.HandleAppError(err, "processBotpress", "Login", false)
+	// 	return err
+	// }
+
+	// result, err := l.application.BotService.Botpress.AskBotpress(additional.UniqueId, loginResult.Token, loginResult.BaseURL, botPayload)
+	// if err != nil {
+	// 	util.HandleAppError(err, "processBotpress", "AskBotpress", false)
+	// 	return err
+	// }
+
+	// msg.Additional.BotResponse = map[string]interface{}{
+	// 	"responses":  result.Responses,
+	// 	"state":      result.State.Context.CurrentNode,
+	// 	"stacktrace": result.State.Stacktrace,
+	// 	"bot_date":   time.Now().Format("2006-01-02 15:04:05"),
+	// }
+
+	// return l.messagingGeneral.Publish(util.GodotEnv("QUEUE_LIVECHAT_OUTGOING"), *msg)
+	return nil
 }

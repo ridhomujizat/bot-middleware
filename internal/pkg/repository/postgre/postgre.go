@@ -4,6 +4,12 @@ import (
 	"bot-middleware/internal/pkg/util"
 	"fmt"
 
+	appAccount "bot-middleware/internal/application/account"
+	appBot "bot-middleware/internal/application/bot"
+	appSession "bot-middleware/internal/application/session"
+
+	"strconv"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	gormLogger "gorm.io/gorm/logger"
@@ -11,7 +17,6 @@ import (
 )
 
 func getDSN() string {
-
 	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s",
 		util.GodotEnv("DB_HOST"),
 		util.GodotEnv("DB_USERNAME"),
@@ -28,6 +33,32 @@ func initDBMaster() (*gorm.DB, error) {
 			SingularTable: true,
 		},
 	})
+	if err != nil {
+		util.HandleAppError(err, "initDBMaster", "Gorm Open", true)
+	}
+
+	sync, err := strconv.ParseBool(util.GodotEnv("DB_SYNC"))
+	if err != nil {
+		util.HandleAppError(err, "initDBMaster", "ParseBool", true)
+	}
+
+	fmt.Println("sync", sync)
+
+	if sync {
+		err := gormDB.AutoMigrate(&appAccount.AccountSetting{})
+		if err != nil {
+			return nil, err
+		}
+		err = gormDB.AutoMigrate(&appBot.ServerBot{})
+		if err != nil {
+			return nil, err
+		}
+		err = gormDB.AutoMigrate(&appSession.Session{})
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if err != nil {
 		util.HandleAppError(err, "initDBMaster", "connectionMasterDB", true)
 		return nil, err

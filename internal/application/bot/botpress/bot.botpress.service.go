@@ -2,12 +2,15 @@ package botpress
 
 import (
 	appAccount "bot-middleware/internal/application/account"
-	"bot-middleware/internal/entities"
 	"bot-middleware/internal/pkg/util"
+	webhookLivechat "bot-middleware/internal/webhook/livechat"
+	webhookTelegram "bot-middleware/internal/webhook/telegram"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/pterm/pterm"
 	"gorm.io/gorm"
@@ -27,43 +30,59 @@ type loginPayload struct {
 	Password string `json:"password"`
 }
 
-func (a *BotpressService) Login() (*LoginRespon, error) {
-
-	account, err := a.accountService.GetUserByAccountId("libra_onx")
+func (a *BotpressService) Login(botAccount, tenantId string) (*LoginRespon, error) {
+	account, err := a.accountService.GetAccount(botAccount, tenantId)
 	if err != nil {
 		return nil, err
 	}
 
-	payloadLogin := loginPayload{
-		Email:    account.Username,
-		Password: account.Password,
-	}
-	// Marshal the payload into JSON
-	jsonData, err := json.Marshal(payloadLogin)
+	today := time.Now()
+	dayUpdate := account.UpdatedAt
+	diffDays := today.Sub(dayUpdate).Hours() / 24
 
-	respon, statusCode, errResponse := util.HttpPost(account.AuthURL, jsonData, map[string]string{
-		"Content-Type": "application/json",
-	})
-	if errResponse != nil {
-		util.HandleAppError(errResponse, "HttpPost", "Login", false)
-		return nil, errResponse
-	}
-
-	if statusCode == http.StatusOK {
-		var loginResponse LoginBotPressDTO
-		errDecode := json.Unmarshal([]byte(respon), &loginResponse)
-		if errDecode != nil {
-
-			fmt.Println("Error decoding JSON:", errDecode)
-			return nil, errDecode
+	if diffDays >= 6 || account.Token == "" {
+		payloadLogin := loginPayload{
+			Email:    account.Username,
+			Password: account.Password,
 		}
+		jsonData, err := json.Marshal(payloadLogin)
+		if err != nil {
+			return nil, err
+		}
+
+		respon, statusCode, errResponse := util.HttpPost(account.AuthURL, jsonData, map[string]string{
+			"Content-Type": "application/json",
+		})
+		if errResponse != nil {
+			util.HandleAppError(errResponse, "HttpPost", "Login", false)
+			return nil, errResponse
+		}
+
+		if statusCode == http.StatusOK {
+			var loginResponse LoginBotPressDTO
+			errDecode := json.Unmarshal([]byte(respon), &loginResponse)
+			if errDecode != nil {
+				pterm.Error.Println("Error decoding JSON:", errDecode)
+				return nil, errDecode
+			}
+			token := loginResponse.Payload.Jwt
+			account.Token = token
+			if err := a.accountService.SaveAccount(account); err != nil {
+				return nil, err
+			}
+			return &LoginRespon{
+				Token:   token,
+				BaseURL: account.BaseURL,
+			}, nil
+		} else {
+			pterm.Error.Println("Request failed with status:", statusCode)
+			return nil, fmt.Errorf("failed with status: %d", statusCode)
+		}
+	} else {
 		return &LoginRespon{
-			Token:   loginResponse.Payload.Jwt,
+			Token:   account.Token,
 			BaseURL: account.BaseURL,
 		}, nil
-	} else {
-		fmt.Println("Request failed with status:", statusCode)
-		return nil, err
 	}
 }
 
@@ -99,7 +118,51 @@ func (a *BotpressService) AskBotpress(uniqueId string, token string, baseURL str
 	return &responBotpress, nil
 }
 
-func (a *BotpressService) ParsingPayloadTelegram(payload entities.IncomingTelegramDTO) (*AskPayloadBotpresDTO, error) {
+func (a *BotpressService) BPLCOC(payload webhookLivechat.IncomingDTO) (*AskPayloadBotpresDTO, error) {
+	var botPayload AskPayloadBotpresDTO
+	switch payload.Action {
+	case "clientReplyText":
+		botPayload.Type = BotpressMessageType(TEXT)
+		botPayload.Text = payload.Message
+		botPayload.Metadata = payload.Additional
+	case "clientReplyButton":
+		botPayload.Type = BotpressMessageType(SINGLE_CHOICE)
+		botPayload.Text = payload.Message
+		botPayload.Metadata = payload.Additional
+	case "clientReplyCarousel":
+		botPayload.Type = BotpressMessageType(POSTBACK)
+		botPayload.Payload = payload.Message
+		botPayload.Metadata = payload.Additional
+	default:
+		return nil, fmt.Errorf("unsupported action: %s", payload.Action)
+	}
+	return &botPayload, nil
+}
+
+func (a *BotpressService) BPTLGOF(payload *webhookTelegram.IncomingTelegramDTO) (*AskPayloadBotpresDTO, error) {
+	if payload == nil {
+		return nil, errors.New("payload is nil")
+	}
+
+	var botPayload AskPayloadBotpresDTO
+
+	if payload.Message != nil {
+		botPayload.Type = TEXT
+		botPayload.Text = payload.Message.Text
+		botPayload.Metadata = *payload.Additional
+		return &botPayload, nil
+	} else if payload.CallbackQuery != nil {
+		botPayload.Type = POSTBACK
+		botPayload.Text = payload.CallbackQuery.Data
+		botPayload.Payload = payload.CallbackQuery.Data
+		botPayload.Metadata = *payload.Additional
+		return &botPayload, nil
+	}
+
+	return nil, errors.New("no valid message or callback query found in payload")
+}
+
+func (a *BotpressService) ParsingPayloadTelegram(payload webhookTelegram.IncomingTelegramDTO) (*AskPayloadBotpresDTO, error) {
 	var botPayload AskPayloadBotpresDTO
 
 	if payload.CallbackQuery != nil {

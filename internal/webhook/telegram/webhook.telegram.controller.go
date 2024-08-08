@@ -1,7 +1,7 @@
 package webhookTelegram
 
 import (
-	"bot-middleware/internal/application"
+	"bot-middleware/internal/entities"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/util"
 	"bot-middleware/internal/webhook"
@@ -11,8 +11,7 @@ import (
 )
 
 type TelegramController struct {
-	service     *TelegramService
-	application *application.Services
+	service *TelegramService
 }
 
 func NewTelegramController(messagingGeneral messaging.MessagingGeneral) *TelegramController {
@@ -51,8 +50,8 @@ func (t *TelegramController) Incoming(ctx *gin.Context) {
 	}
 
 	params := webhook.ParamsDTO{
-		BotPlatform: webhook.BotPlatform(botplatform),
-		Omnichannel: webhook.Omnichannel(omnichannel),
+		BotPlatform: entities.BotPlatform(botplatform),
+		Omnichannel: entities.Omnichannel(omnichannel),
 		TenantId:    tenantId,
 		Account:     account,
 	}
@@ -103,8 +102,8 @@ func (t *TelegramController) Handover(ctx *gin.Context) {
 	}
 
 	params := webhook.ParamsDTO{
-		BotPlatform: webhook.BotPlatform(botplatform),
-		Omnichannel: webhook.Omnichannel(omnichannel),
+		BotPlatform: entities.BotPlatform(botplatform),
+		Omnichannel: entities.Omnichannel(omnichannel),
 		TenantId:    tenantId,
 		Account:     account,
 	}
@@ -155,8 +154,8 @@ func (t *TelegramController) End(ctx *gin.Context) {
 	}
 
 	params := webhook.ParamsDTO{
-		BotPlatform: webhook.BotPlatform(botplatform),
-		Omnichannel: webhook.Omnichannel(omnichannel),
+		BotPlatform: entities.BotPlatform(botplatform),
+		Omnichannel: entities.Omnichannel(omnichannel),
 		TenantId:    tenantId,
 		Account:     account,
 	}

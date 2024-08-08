@@ -1,6 +1,7 @@
 package webhookTelegram
 
 import (
+	"bot-middleware/internal/entities"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/util"
 	"bot-middleware/internal/webhook"
@@ -31,9 +32,9 @@ func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload IncomingTel
 		Omnichannel:        params.Omnichannel,
 		TenantId:           params.TenantId,
 		AccountId:          params.Account,
-		ChannelPlatform:    webhook.OFFICIAL,
-		ChannelSources:     webhook.TELEGRAM,
-		ChannelID:          webhook.TELEGRAM_ID,
+		ChannelPlatform:    entities.OFFICIAL,
+		ChannelSources:     entities.TELEGRAM,
+		ChannelID:          entities.TELEGRAM_ID,
 		MiddlewareEndpoint: fmt.Sprintf("%s/official/telegram/%s/%s/%s", util.GodotEnv("BASE_URL"), params.Omnichannel, params.TenantId, params.Account),
 		// DateTimestamp:      time.Unix(int64(payload.Data.Entry[0].Messaging[0].Timestamp/1000), 0).Format("2006-01-02 15:04:05"),
 		// CustMessage:        payload.Data.Entry[0].Messaging[0].Message.Text,
@@ -84,8 +85,8 @@ func (t *TelegramService) Handover(params webhook.ParamsDTO, payload webhook.Han
 	queueName := fmt.Sprintf("%s:%s:%s:%s:handover", params.Omnichannel, params.TenantId, util.GodotEnv("TELEGRAM_QUEUE_NAME"), payload.AccountID)
 	pterm.Info.Println("queueName", queueName)
 
-	additional := map[string]webhook.ChannelPlatform{
-		"channel_platform": webhook.OFFICIAL,
+	additional := map[string]entities.ChannelPlatform{
+		"channel_platform": entities.OFFICIAL,
 	}
 
 	data := map[string]interface{}{
@@ -108,8 +109,8 @@ func (t *TelegramService) End(params webhook.ParamsDTO, payload webhook.EndDTO) 
 	queueName := fmt.Sprintf("%s:%s:%s:%s:end", params.Omnichannel, params.TenantId, util.GodotEnv("TELEGRAM_QUEUE_NAME"), payload.AccountID)
 	pterm.Info.Println("queueName", queueName)
 
-	additional := map[string]webhook.ChannelPlatform{
-		"channel_platform": webhook.OFFICIAL,
+	additional := map[string]entities.ChannelPlatform{
+		"channel_platform": entities.OFFICIAL,
 	}
 
 	data := map[string]interface{}{

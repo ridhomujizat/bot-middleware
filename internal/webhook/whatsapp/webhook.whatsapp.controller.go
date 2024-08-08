@@ -1,6 +1,7 @@
 package webhookWhatsapp
 
 import (
+	"bot-middleware/internal/entities"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/util"
 	"bot-middleware/internal/webhook"
@@ -48,8 +49,8 @@ func (w *WhatsappController) Incoming(ctx *gin.Context) {
 	}
 
 	params := webhook.ParamsDTO{
-		BotPlatform: webhook.BotPlatform(botplatform),
-		Omnichannel: webhook.Omnichannel(omnichannel),
+		BotPlatform: entities.BotPlatform(botplatform),
+		Omnichannel: entities.Omnichannel(omnichannel),
 		TenantId:    tenantId,
 		Account:     account,
 	}
@@ -100,8 +101,8 @@ func (w *WhatsappController) Handover(ctx *gin.Context) {
 	}
 
 	params := webhook.ParamsDTO{
-		BotPlatform: webhook.BotPlatform(botplatform),
-		Omnichannel: webhook.Omnichannel(omnichannel),
+		BotPlatform: entities.BotPlatform(botplatform),
+		Omnichannel: entities.Omnichannel(omnichannel),
 		TenantId:    tenantId,
 		Account:     account,
 	}
@@ -152,8 +153,8 @@ func (w *WhatsappController) End(ctx *gin.Context) {
 	}
 
 	params := webhook.ParamsDTO{
-		BotPlatform: webhook.BotPlatform(botplatform),
-		Omnichannel: webhook.Omnichannel(omnichannel),
+		BotPlatform: entities.BotPlatform(botplatform),
+		Omnichannel: entities.Omnichannel(omnichannel),
 		TenantId:    tenantId,
 		Account:     account,
 	}
@@ -204,8 +205,8 @@ func (w *WhatsappController) Commerce(ctx *gin.Context) {
 	}
 
 	params := webhook.ParamsDTO{
-		BotPlatform: webhook.BotPlatform(botplatform),
-		Omnichannel: webhook.Omnichannel(omnichannel),
+		BotPlatform: entities.BotPlatform(botplatform),
+		Omnichannel: entities.Omnichannel(omnichannel),
 		TenantId:    tenantId,
 		Account:     account,
 	}
@@ -251,8 +252,8 @@ func (w *WhatsappController) Midtrans(ctx *gin.Context) {
 	}
 
 	params := webhook.ParamsDTO{
-		BotPlatform: webhook.BotPlatform(botplatform),
-		Omnichannel: webhook.Omnichannel(omnichannel),
+		BotPlatform: entities.BotPlatform(botplatform),
+		Omnichannel: entities.Omnichannel(omnichannel),
 		TenantId:    tenantId,
 		Account:     account,
 	}
