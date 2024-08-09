@@ -139,7 +139,7 @@ func (a *BotpressService) BPLCOC(payload webhookLivechat.IncomingDTO) (*AskPaylo
 	return &botPayload, nil
 }
 
-func (a *BotpressService) BPTLGOF(payload *webhookTelegram.IncomingTelegramDTO) (*AskPayloadBotpresDTO, error) {
+func (a *BotpressService) BPTLGOF(payload *webhookTelegram.IncomingDTO) (*AskPayloadBotpresDTO, error) {
 	if payload == nil {
 		return nil, errors.New("payload is nil")
 	}
@@ -162,7 +162,7 @@ func (a *BotpressService) BPTLGOF(payload *webhookTelegram.IncomingTelegramDTO) 
 	return nil, errors.New("no valid message or callback query found in payload")
 }
 
-func (a *BotpressService) ParsingPayloadTelegram(payload webhookTelegram.IncomingTelegramDTO) (*AskPayloadBotpresDTO, error) {
+func (a *BotpressService) ParsingPayloadTelegram(payload webhookTelegram.IncomingDTO) (*AskPayloadBotpresDTO, error) {
 	var botPayload AskPayloadBotpresDTO
 
 	if payload.CallbackQuery != nil {

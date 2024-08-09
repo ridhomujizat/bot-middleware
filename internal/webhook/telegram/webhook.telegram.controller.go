@@ -37,7 +37,7 @@ func (t *TelegramController) Incoming(ctx *gin.Context) {
 	tenantId := ctx.Param("tenantId")
 	account := ctx.Param("account")
 
-	var payload IncomingTelegramDTO
+	var payload IncomingDTO
 
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		util.APIResponse(ctx, err.Error(), http.StatusBadRequest, http.MethodPost, nil)

@@ -98,20 +98,32 @@ type Slots struct {
 }
 
 type Response struct {
-	Type                string   `json:"type"`
-	Skill               string   `json:"skill"`
-	Workflow            Slots    `json:"workflow"`
-	Text                string   `json:"text"`
-	IsDropdown          bool     `json:"isDropdown"`
-	DropdownPlaceholder string   `json:"dropdownPlaceholder"`
-	Choices             []Choice `json:"choices"`
-	Markdown            bool     `json:"markdown"`
-	Typing              bool     `json:"typing"`
+	Type                string     `json:"type"`
+	Skill               string     `json:"skill"`
+	Workflow            Slots      `json:"workflow"`
+	Text                string     `json:"text"`
+	IsDropdown          bool       `json:"isDropdown"`
+	DropdownPlaceholder string     `json:"dropdownPlaceholder"`
+	Choices             []Choice   `json:"choices"`
+	Items               []Carousel `json:"items"`
+	Markdown            bool       `json:"markdown"`
+	Typing              bool       `json:"typing"`
 }
-
 type Choice struct {
 	Title string `json:"title"`
 	Value string `json:"value"`
+}
+type Carousel struct {
+	Title    string    `json:"title"`
+	SubTitle string    `json:"subTitle"`
+	Image    string    `json:"image"`
+	Actions  []Actions `json:"actions"`
+}
+
+type Actions struct {
+	Action  string `json:"action"`
+	Text    string `json:"text"`
+	Payload string `json:"payload"`
 }
 
 type State struct {

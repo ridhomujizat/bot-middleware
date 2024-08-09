@@ -21,7 +21,7 @@ func NewTelegramService(messagingGeneral messaging.MessagingGeneral) *TelegramSe
 	}
 }
 
-func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload IncomingTelegramDTO) (interface{}, error) {
+func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload IncomingDTO) (interface{}, error) {
 
 	queueName := fmt.Sprintf("%s:%s:%s:%s", params.Omnichannel, params.TenantId, util.GodotEnv("TELEGRAM_QUEUE_NAME"), params.Account)
 	pterm.Info.Println("queueName", queueName)
