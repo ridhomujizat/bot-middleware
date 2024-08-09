@@ -12,22 +12,23 @@ type EndDTO struct {
 	SID       string `json:"sid,omitempty" validate:"required"`
 }
 
-func UnmarshalTelegramDTO(data []byte) (IncomingTelegramDTO, error) {
-	var r IncomingTelegramDTO
+func UnmarshalTelegramDTO(data []byte) (IncomingDTO, error) {
+	var r IncomingDTO
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
 
-func (r *IncomingTelegramDTO) Marshal() ([]byte, error) {
+func (r *IncomingDTO) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-type IncomingTelegramDTO struct {
-	UpdateID      int64                   `json:"update_id"`
-	Message       *TelegrampayloadMessage `json:"message"`
-	CallbackQuery *CallbackQuery          `json:"callback_query"`
-	Additional    *webhook.AttributeDTO   `json:"additional"`
-	BotResponse   *map[string]interface{} `json:"bot_response"`
+type IncomingDTO struct {
+	UpdateID         int64                     `json:"update_id"`
+	Message          *TelegrampayloadMessage   `json:"message"`
+	CallbackQuery    *CallbackQuery            `json:"callback_query"`
+	Additional       *webhook.AttributeDTO     `json:"additional"`
+	BotResponse      *map[string]interface{}   `json:"bot_response"`
+	OutgoingResponse *[]map[string]interface{} `json:"outgoing_response"`
 }
 
 type CallbackQuery struct {

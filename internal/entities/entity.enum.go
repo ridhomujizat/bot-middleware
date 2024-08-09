@@ -15,6 +15,7 @@ const (
 	FBMessengerType  AccountType = "fbmessenger"
 	OctopushChatType AccountType = "octopushchat"
 	IGDMType         AccountType = "igdm"
+	TelegramType     AccountType = "telegram"
 )
 
 const (
@@ -24,6 +25,7 @@ const (
 	BotpressPlatform AccountPlatform = "botpress"
 	LiveChatOctopush AccountPlatform = "livechat_octopushchat"
 	IGDMSocio        AccountPlatform = "igdm_socio"
+	Telegram         AccountPlatform = "telegram_official"
 )
 
 const (

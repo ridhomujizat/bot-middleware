@@ -131,9 +131,14 @@ func initDB() *application.Services {
 }
 
 func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services) {
-	workerTelegram.NewTelegramIncoming(messagingGeneral, applicationService, "exchange", "incoming", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false)
-	workerTelegram.NewTelegramBotProcess(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false)
-	workerTelegram.NewTelegramOutgoingHandler(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:outgoing", false)
+	telegramSubscriber := workerTelegram.NewTelegramService(messagingGeneral, applicationService)
+	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false, telegramSubscriber.Process)
+	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false, telegramSubscriber.InitiateBot)
+	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot:outgoing", false, telegramSubscriber.Outgoing)
+
+	// workerTelegram.NewTelegramIncoming(messagingGeneral, applicationService, "exchange", "incoming", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false)
+	// workerTelegram.NewTelegramBotProcess(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false)
+	// workerTelegram.NewTelegramOutgoingHandler(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:outgoing", false)
 
 	livechatSubscriber := workerLivechat.NewLivechatService(messagingGeneral, applicationService)
 	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_INITIATE"), false, livechatSubscriber.Process)
