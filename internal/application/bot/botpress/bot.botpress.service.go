@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/pterm/pterm"
 	"gorm.io/gorm"
@@ -32,16 +31,18 @@ type loginPayload struct {
 
 func (a *BotpressService) Login(botAccount, tenantId string) (*LoginRespon, error) {
 	account, err := a.accountService.GetAccount(botAccount, tenantId)
+	fmt.Println("Account:", botAccount, tenantId)
 
 	if err != nil {
 		return nil, err
 	}
 
-	today := time.Now()
-	dayUpdate := account.UpdatedAt
-	diffDays := today.Sub(dayUpdate).Hours() / 24
+	// today := time.Now()
+	// dayUpdate := account.UpdatedAt
+	// diffDays := today.Sub(dayUpdate).Hours() / 24
 
-	if diffDays >= 6 || account.Token == "" {
+	if true {
+		// if diffDays >= 6 || account.Token == "" {
 		payloadLogin := loginPayload{
 			Email:    account.Username,
 			Password: account.Password,
