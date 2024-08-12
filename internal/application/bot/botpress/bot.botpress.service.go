@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -47,10 +46,10 @@ func (a *BotpressService) Login(botAccount, tenantId string) (*LoginRespon, erro
 		}
 		jsonData, err := json.Marshal(payloadLogin)
 		if err != nil {
-			return nil, err
+			return nil, util.HandleAppError(err, "Botpress Login", "JSON Marshal", true)
 		}
 
-		respon, statusCode, errResponse := util.HttpPost(account.AuthURL, jsonData, map[string]string{
+		respon, _, errResponse := util.HttpPost(account.AuthURL, jsonData, map[string]string{
 			"Content-Type": "application/json",
 		})
 		if errResponse != nil {
@@ -58,26 +57,21 @@ func (a *BotpressService) Login(botAccount, tenantId string) (*LoginRespon, erro
 			return nil, errResponse
 		}
 
-		if statusCode == http.StatusOK {
-			var loginResponse LoginBotPressDTO
-			errDecode := json.Unmarshal([]byte(respon), &loginResponse)
-			if errDecode != nil {
-				pterm.Error.Println("Error decoding JSON:", errDecode)
-				return nil, errDecode
-			}
-			token := loginResponse.Payload.Jwt
-			account.Token = token
-			if err := a.accountService.SaveAccount(account); err != nil {
-				return nil, err
-			}
-			return &LoginRespon{
-				Token:   token,
-				BaseURL: account.BaseURL,
-			}, nil
-		} else {
-			pterm.Error.Println("Request failed with status:", statusCode)
-			return nil, fmt.Errorf("failed with status: %d", statusCode)
+		var loginResponse LoginBotPressDTO
+		errDecode := json.Unmarshal([]byte(respon), &loginResponse)
+		if errDecode != nil {
+			return nil, util.HandleAppError(err, "Botpress Login", "JSON Unmarshal", true)
 		}
+		token := loginResponse.Payload.Jwt
+		account.Token = token
+		if err := a.accountService.SaveAccount(account); err != nil {
+			return nil, err
+		}
+		return &LoginRespon{
+			Token:   token,
+			BaseURL: account.BaseURL,
+		}, nil
+
 	} else {
 		return &LoginRespon{
 			Token:   account.Token,
@@ -91,7 +85,7 @@ func (a *BotpressService) AskBotpress(uniqueId string, token string, baseURL str
 
 	jsonData, err := json.Marshal(botP)
 	if err != nil {
-		fmt.Println("Error marshaling JSON:", err)
+		return nil, util.HandleAppError(err, "AskBotpress", "JSON Marshal", true)
 	}
 
 	body, statusCode, errRespon := util.HttpPost(url, []byte(jsonData),
@@ -101,7 +95,6 @@ func (a *BotpressService) AskBotpress(uniqueId string, token string, baseURL str
 		})
 
 	if errRespon != nil {
-		util.HandleAppError(errRespon, "POST", "util.HttpPost", false)
 		return nil, errRespon
 	}
 
@@ -111,8 +104,7 @@ func (a *BotpressService) AskBotpress(uniqueId string, token string, baseURL str
 
 	responBotpress, err := UnmarshalBotpressRespon([]byte(body))
 	if err != nil {
-		util.HandleAppError(err, "UnmarshalBotpressRespon", "AskBotpress", false)
-		return nil, err
+		return nil, util.HandleAppError(err, "AskBotpress", "JSON Unmarshal", true)
 	}
 
 	return &responBotpress, nil

@@ -26,7 +26,7 @@ func (f *FacebookService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 	pterm.Info.Println("queueName", queueName)
 
 	data := webhook.AttributeDTO{
-		UniqueId:           payload.Data.Entry[0].Messaging[0].Sender.ID,
+		UniqueId:           payload.Data.Entry[0].Messaging[0].Sender.Id,
 		CustName:           fmt.Sprintf("%s %s", payload.Data.Entry[0].Messaging[0].Sender.FirstName, payload.Data.Entry[0].Messaging[0].Sender.LastName),
 		BotPlatform:        params.BotPlatform,
 		Omnichannel:        params.Omnichannel,
@@ -34,7 +34,7 @@ func (f *FacebookService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 		AccountId:          payload.Account,
 		ChannelPlatform:    entities.SOCIOCONNECT,
 		ChannelSources:     entities.FBMESSENGER,
-		ChannelID:          entities.FBMESSENGER_ID,
+		ChannelId:          entities.FBMESSENGER_ID,
 		MiddlewareEndpoint: fmt.Sprintf("%s/socioconnect/fbmessenger/%s/%s", util.GodotEnv("BASE_URL"), params.Omnichannel, params.TenantId),
 		DateTimestamp:      time.Unix(int64(payload.Data.Entry[0].Messaging[0].Timestamp/1000), 0).Format("2006-01-02 15:04:05"),
 		CustMessage:        payload.Data.Entry[0].Messaging[0].Message.Text,
@@ -51,7 +51,7 @@ func (f *FacebookService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 }
 
 func (f *FacebookService) Handover(params webhook.ParamsDTO, payload webhook.HandoverDTO) (interface{}, error) {
-	queueName := fmt.Sprintf("%s:%s:%s:%s:handover", params.Omnichannel, params.TenantId, util.GodotEnv("FBM_QUEUE_NAME"), payload.AccountID)
+	queueName := fmt.Sprintf("%s:%s:%s:%s:handover", params.Omnichannel, params.TenantId, util.GodotEnv("FBM_QUEUE_NAME"), payload.AccountId)
 	pterm.Info.Println("queueName", queueName)
 
 	additional := map[string]entities.ChannelPlatform{
@@ -75,7 +75,7 @@ func (f *FacebookService) Handover(params webhook.ParamsDTO, payload webhook.Han
 }
 
 func (f *FacebookService) End(params webhook.ParamsDTO, payload EndDTO) (interface{}, error) {
-	queueName := fmt.Sprintf("%s:%s:%s:%s:end", params.Omnichannel, params.TenantId, util.GodotEnv("FBM_QUEUE_NAME"), payload.AccountID)
+	queueName := fmt.Sprintf("%s:%s:%s:%s:end", params.Omnichannel, params.TenantId, util.GodotEnv("FBM_QUEUE_NAME"), payload.AccountId)
 	pterm.Info.Println("queueName", queueName)
 
 	additional := map[string]entities.ChannelPlatform{

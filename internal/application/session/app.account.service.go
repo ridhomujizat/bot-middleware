@@ -16,6 +16,9 @@ func NewSessionService(db *gorm.DB) *SessionService {
 func (a *SessionService) FindSession(uniqueId, channelPlatform, channelSource, tenantId string) (*Session, error) {
 	var session Session
 	if err := a.db.Where("unique_id = ? AND channel_platform = ? AND channel_source = ? AND tenantId = ?", uniqueId, channelPlatform, channelSource, tenantId).First(&session).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &session, nil

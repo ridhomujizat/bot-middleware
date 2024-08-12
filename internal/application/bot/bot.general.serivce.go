@@ -19,6 +19,9 @@ func (a *BotService) GetServerBot(name string) (*ServerBot, error) {
 	var server ServerBot
 	if err := a.db.Where("server_acco = ?", name).
 		First(&server).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &server, nil
@@ -28,6 +31,9 @@ func (a *BotService) GetAndUpdateBotServer() (*ServerBot, error) {
 	var server ServerBot
 
 	if err := a.db.Where("is_active = ?", true).Order("total ASC").First(&server).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 

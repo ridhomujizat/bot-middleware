@@ -57,6 +57,10 @@ func initDBMaster() (*gorm.DB, error) {
 		if err != nil {
 			return nil, err
 		}
+		err = gormDB.AutoMigrate(&appSession.SessionHistory{})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if err != nil {

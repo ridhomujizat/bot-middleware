@@ -6,10 +6,10 @@ import (
 )
 
 type EndDTO struct {
-	AccountID string `json:"account_id" validate:"required"`
+	AccountId string `json:"account_id" validate:"required"`
 	UniqueId  string `json:"unique_id" validate:"required"`
 	Message   string `json:"message,omitempty" validate:"required"`
-	SID       string `json:"sid,omitempty" validate:"required"`
+	SId       string `json:"sid,omitempty" validate:"required"`
 }
 
 func UnmarshalTelegramDTO(data []byte) (IncomingDTO, error) {
@@ -23,7 +23,7 @@ func (r *IncomingDTO) Marshal() ([]byte, error) {
 }
 
 type IncomingDTO struct {
-	UpdateID         int64                     `json:"update_id"`
+	UpdateId         int64                     `json:"update_id"`
 	Message          *TelegrampayloadMessage   `json:"message"`
 	CallbackQuery    *CallbackQuery            `json:"callback_query"`
 	Additional       *webhook.AttributeDTO     `json:"additional"`
@@ -32,7 +32,7 @@ type IncomingDTO struct {
 }
 
 type CallbackQuery struct {
-	ID           int64                `json:"id"`
+	Id           int64                `json:"id"`
 	From         CallbackQueryFrom    `json:"from"`
 	Message      CallbackQueryMessage `json:"message"`
 	ChatInstance string               `json:"chat_instance"`
@@ -40,7 +40,7 @@ type CallbackQuery struct {
 }
 
 type CallbackQueryFrom struct {
-	ID           int64   `json:"id"`
+	Id           int64   `json:"id"`
 	IsBot        bool    `json:"is_bot"`
 	FirstName    string  `json:"first_name"`
 	LastName     *string `json:"last_name,omitempty"`
@@ -49,7 +49,7 @@ type CallbackQueryFrom struct {
 }
 
 type CallbackQueryMessage struct {
-	MessageID   int64       `json:"message_id"`
+	MessageId   int64       `json:"message_id"`
 	From        PurpleFrom  `json:"from"`
 	Chat        Chat        `json:"chat"`
 	Date        int64       `json:"date"`
@@ -58,7 +58,7 @@ type CallbackQueryMessage struct {
 }
 
 type Chat struct {
-	ID        int64   `json:"id"`
+	Id        int64   `json:"id"`
 	FirstName string  `json:"first_name"`
 	LastName  *string `json:"last_name,omitempty"`
 	Username  string  `json:"username"`
@@ -66,7 +66,7 @@ type Chat struct {
 }
 
 type PurpleFrom struct {
-	ID        int64  `json:"id"`
+	Id        int64  `json:"id"`
 	IsBot     bool   `json:"is_bot"`
 	FirstName string `json:"first_name"`
 	Username  string `json:"username"`
@@ -82,7 +82,7 @@ type InlineKeyboard struct {
 }
 
 type TelegrampayloadMessage struct {
-	MessageID int64             `json:"message_id"`
+	MessageId int64             `json:"message_id"`
 	From      CallbackQueryFrom `json:"from"`
 	Chat      Chat              `json:"chat"`
 	Date      int64             `json:"date"`

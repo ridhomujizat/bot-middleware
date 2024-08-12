@@ -19,7 +19,7 @@ var Client HTTPClient = &http.Client{Timeout: 10 * time.Second}
 func HttpGet(url string, headers map[string]string) (string, int, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return "", 0, err
+		return "", 0, HandleAppError(err, "HTTP Get", "New Request", true)
 	}
 	for key, value := range headers { // Corrected syntax here
 		req.Header.Set(key, value)
@@ -27,13 +27,13 @@ func HttpGet(url string, headers map[string]string) (string, int, error) {
 
 	resp, err := Client.Do(req)
 	if err != nil {
-		return "", 0, err
+		return "", 0, HandleAppError(err, "HTTP Get", "Do", true)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", 0, err
+		return "", 0, HandleAppError(err, "HTTP Get", "ReadAll", true)
 	}
 
 	return string(body), resp.StatusCode, nil
@@ -44,7 +44,7 @@ func HttpGet(url string, headers map[string]string) (string, int, error) {
 func HttpPost(url string, body []byte, headers map[string]string) (string, int, error) {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
-		return "", 0, err
+		return "", 0, HandleAppError(err, "HTTP Post", "New Request", true)
 	}
 	for key, value := range headers { // Corrected syntax here
 		req.Header.Set(key, value)
@@ -52,13 +52,13 @@ func HttpPost(url string, body []byte, headers map[string]string) (string, int, 
 
 	resp, err := Client.Do(req)
 	if err != nil {
-		return "", 0, err
+		return "", 0, HandleAppError(err, "HTTP Post", "Do", true)
 	}
 	defer resp.Body.Close()
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", 0, err
+		return "", 0, HandleAppError(err, "HTTP Post", "ReadAll", true)
 	}
 
 	return string(responseBody), resp.StatusCode, nil
@@ -69,7 +69,7 @@ func HttpPost(url string, body []byte, headers map[string]string) (string, int, 
 func HttpPut(url string, body []byte, headers map[string]string) (string, int, error) {
 	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(body))
 	if err != nil {
-		return "", 0, err
+		return "", 0, HandleAppError(err, "HTTP Put", "New Request", true)
 	}
 	for key, value := range headers {
 		req.Header.Set(key, value)
@@ -77,13 +77,13 @@ func HttpPut(url string, body []byte, headers map[string]string) (string, int, e
 
 	resp, err := Client.Do(req)
 	if err != nil {
-		return "", 0, err
+		return "", 0, HandleAppError(err, "HTTP Put", "Do", true)
 	}
 	defer resp.Body.Close()
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", 0, err
+		return "", 0, HandleAppError(err, "HTTP Put", "ReadAll", true)
 	}
 
 	return string(responseBody), resp.StatusCode, nil
@@ -93,7 +93,7 @@ func HttpPut(url string, body []byte, headers map[string]string) (string, int, e
 func HttpDelete(url string, headers map[string]string) (string, int, error) {
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
-		return "", 0, err
+		return "", 0, HandleAppError(err, "HTTP Delete", "New Request", true)
 	}
 	for key, value := range headers {
 		req.Header.Set(key, value)
@@ -101,13 +101,13 @@ func HttpDelete(url string, headers map[string]string) (string, int, error) {
 
 	resp, err := Client.Do(req)
 	if err != nil {
-		return "", 0, err
+		return "", 0, HandleAppError(err, "HTTP Delete", "Do", true)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", 0, err
+		return "", 0, HandleAppError(err, "HTTP Delete", "ReadAll", true)
 	}
 
 	return string(body), resp.StatusCode, nil

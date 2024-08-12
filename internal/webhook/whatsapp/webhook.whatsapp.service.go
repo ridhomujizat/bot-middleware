@@ -1,8 +1,8 @@
 package webhookWhatsapp
 
 import (
-	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/entities"
+	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/util"
 	"bot-middleware/internal/webhook"
 	"fmt"
@@ -35,7 +35,7 @@ func (w *WhatsappService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 		AccountId:          payload.AccountId,
 		ChannelPlatform:    entities.SOCIOCONNECT,
 		ChannelSources:     entities.WHATSAPP,
-		ChannelID:          entities.WHATSAPP_ID,
+		ChannelId:          entities.WHATSAPP_ID,
 		MiddlewareEndpoint: fmt.Sprintf("%s/socioconnect/whatsapp/%s/%s", util.GodotEnv("BASE_URL"), params.Omnichannel, params.TenantId),
 		DateTimestamp:      time.Unix(0, int64(payload.Messages[0].Timestamp)).Format("2006-01-02 15:04:05"),
 	}
@@ -51,7 +51,7 @@ func (w *WhatsappService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 }
 
 func (w *WhatsappService) End(params webhook.ParamsDTO, payload EndDTO) (interface{}, error) {
-	queueName := fmt.Sprintf("%s:%s:%s:%s:end", params.Omnichannel, params.TenantId, util.GodotEnv("WA_QUEUE_NAME"), payload.AccountID)
+	queueName := fmt.Sprintf("%s:%s:%s:%s:end", params.Omnichannel, params.TenantId, util.GodotEnv("WA_QUEUE_NAME"), payload.AccountId)
 	pterm.Info.Println("queueName", queueName)
 
 	data := map[string]interface{}{
@@ -69,7 +69,7 @@ func (w *WhatsappService) End(params webhook.ParamsDTO, payload EndDTO) (interfa
 }
 
 func (w *WhatsappService) Handover(params webhook.ParamsDTO, payload webhook.HandoverDTO) (interface{}, error) {
-	queueName := fmt.Sprintf("%s:%s:%s:%s:handover", params.Omnichannel, params.TenantId, "wa_queue_name", payload.AccountID)
+	queueName := fmt.Sprintf("%s:%s:%s:%s:handover", params.Omnichannel, params.TenantId, "wa_queue_name", payload.AccountId)
 	pterm.Info.Println("handover params:", params)
 	pterm.Info.Println("handover payload:", payload)
 	pterm.Info.Println("handover queueName:", queueName)
@@ -91,11 +91,11 @@ func (w *WhatsappService) Handover(params webhook.ParamsDTO, payload webhook.Han
 }
 
 func (w *WhatsappService) Commerce(params webhook.ParamsDTO, payload IncomingDTO) (interface{}, error) {
-	uniqueID := "62111"
+	uniqueId := "62111"
 	custName := "User"
 	if len(payload.Contacts) > 0 {
 		if payload.Contacts[0].WaId != "" {
-			uniqueID = payload.Contacts[0].WaId
+			uniqueId = payload.Contacts[0].WaId
 		}
 		if payload.Contacts[0].Profile.Name != "" {
 			custName = payload.Contacts[0].Profile.Name
@@ -103,7 +103,7 @@ func (w *WhatsappService) Commerce(params webhook.ParamsDTO, payload IncomingDTO
 	}
 
 	data := webhook.AttributeDTO{
-		UniqueId:           uniqueID,
+		UniqueId:           uniqueId,
 		CustName:           custName,
 		BotPlatform:        params.BotPlatform,
 		Omnichannel:        params.Omnichannel,
@@ -111,12 +111,12 @@ func (w *WhatsappService) Commerce(params webhook.ParamsDTO, payload IncomingDTO
 		AccountId:          payload.AccountId,
 		ChannelPlatform:    entities.SOCIOCONNECT,
 		ChannelSources:     entities.WHATSAPP,
-		ChannelID:          entities.WHATSAPP_ID,
+		ChannelId:          entities.WHATSAPP_ID,
 		MiddlewareEndpoint: fmt.Sprintf("%s/socioconnect/whatsapp/commerce/%s/%s", util.GodotEnv("BASE_URL"), params.Omnichannel, params.TenantId),
 		DateTimestamp:      time.Unix(int64(payload.Messages[0].Timestamp), 0).Format("2006-01-02 15:04:05"),
 	}
 
-	if uniqueID == "62111" {
+	if uniqueId == "62111" {
 		return "OK", nil
 	}
 

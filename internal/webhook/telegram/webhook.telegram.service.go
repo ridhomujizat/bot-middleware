@@ -27,17 +27,14 @@ func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 	pterm.Info.Println("queueName", queueName)
 
 	data := webhook.AttributeDTO{
-		// UniqueId:           payload.Data.Entry[0].Messaging[0].Sender.ID,
 		BotPlatform:        params.BotPlatform,
 		Omnichannel:        params.Omnichannel,
 		TenantId:           params.TenantId,
 		AccountId:          params.Account,
 		ChannelPlatform:    entities.OFFICIAL,
 		ChannelSources:     entities.TELEGRAM,
-		ChannelID:          entities.TELEGRAM_ID,
+		ChannelId:          entities.TELEGRAM_ID,
 		MiddlewareEndpoint: fmt.Sprintf("%s/official/telegram/%s/%s/%s", util.GodotEnv("BASE_URL"), params.Omnichannel, params.TenantId, params.Account),
-		// DateTimestamp:      time.Unix(int64(payload.Data.Entry[0].Messaging[0].Timestamp/1000), 0).Format("2006-01-02 15:04:05"),
-		// CustMessage:        payload.Data.Entry[0].Messaging[0].Message.Text,
 	}
 
 	if payload.CallbackQuery != nil {
@@ -48,7 +45,7 @@ func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 			lastName = "" // Provide a default value or handle it appropriately
 		}
 		custName := fmt.Sprintf("%s %s", payload.CallbackQuery.From.FirstName, lastName)
-		UniqueId := fmt.Sprintf("%d", payload.CallbackQuery.From.ID)
+		UniqueId := fmt.Sprintf("%d", payload.CallbackQuery.From.Id)
 		data.CustName = custName
 		data.UniqueId = UniqueId
 		data.CustMessage = payload.CallbackQuery.Message.Text
@@ -61,7 +58,7 @@ func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 			lastName = "" // Provide a default value or handle it appropriately
 		}
 		custName := fmt.Sprintf("%s %s", payload.Message.From.FirstName, lastName)
-		UniqueId := fmt.Sprintf("%d", payload.Message.From.ID)
+		UniqueId := fmt.Sprintf("%d", payload.Message.From.Id)
 		data.UniqueId = UniqueId
 		data.CustName = custName
 		data.CustMessage = payload.Message.Text
@@ -82,7 +79,7 @@ func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 }
 
 func (t *TelegramService) Handover(params webhook.ParamsDTO, payload webhook.HandoverDTO) (interface{}, error) {
-	queueName := fmt.Sprintf("%s:%s:%s:%s:handover", params.Omnichannel, params.TenantId, util.GodotEnv("TELEGRAM_QUEUE_NAME"), payload.AccountID)
+	queueName := fmt.Sprintf("%s:%s:%s:%s:handover", params.Omnichannel, params.TenantId, util.GodotEnv("TELEGRAM_QUEUE_NAME"), payload.AccountId)
 	pterm.Info.Println("queueName", queueName)
 
 	additional := map[string]entities.ChannelPlatform{
@@ -106,7 +103,7 @@ func (t *TelegramService) Handover(params webhook.ParamsDTO, payload webhook.Han
 }
 
 func (t *TelegramService) End(params webhook.ParamsDTO, payload webhook.EndDTO) (interface{}, error) {
-	queueName := fmt.Sprintf("%s:%s:%s:%s:end", params.Omnichannel, params.TenantId, util.GodotEnv("TELEGRAM_QUEUE_NAME"), payload.AccountID)
+	queueName := fmt.Sprintf("%s:%s:%s:%s:end", params.Omnichannel, params.TenantId, util.GodotEnv("TELEGRAM_QUEUE_NAME"), payload.AccountId)
 	pterm.Info.Println("queueName", queueName)
 
 	additional := map[string]entities.ChannelPlatform{

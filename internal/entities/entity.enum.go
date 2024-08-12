@@ -3,11 +3,21 @@ package entities
 type BotPlatform string
 type Omnichannel string
 type ChannelSources string
-type ChannelID int
+type ChannelId int
 type ChannelPlatform string
 type MessageType string
 type AccountPlatform string
 type AccountType string
+type BotpressMessageType string
+type BotpressErrorType string
+
+const (
+	BotpressMessageTypeText            BotpressMessageType = "text"
+	BotpressMessageTypeSingleChoice    BotpressMessageType = "single-choice"
+	BotpressMessageTypeCarousel        BotpressMessageType = "carousel"
+	BotpressMessageTypePostback        BotpressMessageType = "postback"
+	BotpressErrorTypeUnauthorizedError BotpressErrorType   = "UnauthorizedError"
+)
 
 const (
 	BotpressType     AccountType = "botpress"
@@ -36,10 +46,10 @@ const (
 )
 
 const (
-	WHATSAPP_ID    ChannelID = 12
-	LIVECHAT_ID    ChannelID = 3
-	FBMESSENGER_ID ChannelID = 7
-	TELEGRAM_ID    ChannelID = 5
+	WHATSAPP_ID    ChannelId = 12
+	LIVECHAT_ID    ChannelId = 3
+	FBMESSENGER_ID ChannelId = 7
+	TELEGRAM_ID    ChannelId = 5
 )
 
 const (

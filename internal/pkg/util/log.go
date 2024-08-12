@@ -3,7 +3,6 @@ package util
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/pterm/pterm"
 )
@@ -12,19 +11,20 @@ var Logger = pterm.DefaultLogger.WithLevel(pterm.LogLevelTrace)
 
 const MessageNotIncoming = "Bukan Incoming"
 
-func HandleAppError(err error, function string, step string, fatal bool) {
+func HandleAppError(err error, function string, step string, fatal bool) error {
 	if err != nil {
 		if fatal {
 			Logger.Fatal(fmt.Sprintf("Fatal error in function: %v", function), Logger.Args("Step", step, "Details", err))
-			os.Exit(1)
+			return err
 		} else {
 			Logger.Error(fmt.Sprintf("Error in function: %v", function), Logger.Args("Step", step, "Details", err))
 		}
 	}
+	return nil
 }
 
-func LoggerChannel(data interface{}, name, tenantID string) {
-	nameLog := tenantID + " - " + name
+func LoggerChannel(data interface{}, name, tenantId string) {
+	nameLog := tenantId + " - " + name
 	logEnv := GodotEnv("LOG")
 	tenantLog := GodotEnv("TENANT_LOG")
 
@@ -37,7 +37,7 @@ func LoggerChannel(data interface{}, name, tenantID string) {
 
 		if tenantLog == "ALL" {
 			pterm.Info.Printfln("%s: %s", nameLog, dataJSON)
-		} else if tenantLog == tenantID {
+		} else if tenantLog == tenantId {
 			pterm.Info.Printfln("%s: %s", nameLog, dataJSON)
 		}
 	}

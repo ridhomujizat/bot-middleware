@@ -1,22 +1,21 @@
 package webhook
 
-import 	"bot-middleware/internal/entities"
-
+import "bot-middleware/internal/entities"
 
 type HopContext struct {
-	AppID    int    `json:"app_id" validate:"required,number"`
+	AppId    int    `json:"app_id" validate:"required,number"`
 	Metadata string `json:"metadata,omitempty" validate:"omitempty"`
 }
 
 type Sender struct {
-	ID         string `json:"id" validate:"required"`
+	Id         string `json:"id" validate:"required"`
 	FirstName  string `json:"first_name" validate:"required"`
 	LastName   string `json:"last_name" validate:"required"`
 	ProfilePic string `json:"profile_pic" validate:"required,url"`
 }
 
 type Recipient struct {
-	ID string `json:"id" validate:"required"`
+	Id string `json:"id" validate:"required"`
 }
 
 type QuickReply struct {
@@ -53,7 +52,7 @@ type Messaging struct {
 }
 
 type Entry struct {
-	ID         string       `json:"id" validate:"required"`
+	Id         string       `json:"id" validate:"required"`
 	Time       int          `json:"time" validate:"required,number"`
 	Messaging  []Messaging  `json:"messaging" validate:"required,dive"`
 	HopContext []HopContext `json:"hop_context,omitempty" validate:"omitempty,dive"`
@@ -67,22 +66,21 @@ type Data struct {
 type AttributeDTO struct {
 	BotPlatform        entities.BotPlatform     `json:"botplatform" validate:"required,oneof=botpress"`
 	Omnichannel        entities.Omnichannel     `json:"omnichannel" validate:"required,oneof=onx on5 on4"`
-	TenantId           string          `json:"tenantId" validate:"required"`
-	AccountId          string          `json:"accountId" validate:"required"`
-	UniqueId           string          `json:"unique_id" validate:"required"`
+	TenantId           string                   `json:"tenantId" validate:"required"`
+	AccountId          string                   `json:"accountId" validate:"required"`
+	UniqueId           string                   `json:"unique_id" validate:"required"`
 	ChannelPlatform    entities.ChannelPlatform `json:"channel_platform" validate:"required,oneof=socioconnect maytapi octopushchat official"`
 	ChannelSources     entities.ChannelSources  `json:"channel_sources" validate:"required,oneof=whatsapp fbmessenger livechat telegram"`
-	ChannelID          entities.ChannelID       `json:"channel_id" validate:"required,oneof=12 3 7 5"`
-	DateTimestamp      string          `json:"date_timestamp" validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
-	MiddlewareEndpoint string          `json:"middleware_endpoint" validate:"required,url"`
-	CustName           string          `json:"cust_name" validate:"required"`
-	StreamID           string          `json:"stream_id,omitempty" validate:"omitempty"`
-	CustMessage        interface{}     `json:"cust_message,omitempty" validate:"omitempty"`
-	BotEndpoint        string          `json:"bot_endpoint" validate:"omitempty,url"`
-	BotAccount         string          `json:"bot_account" validate:"omitempty"`
-	SID                string          `json:"sid,omitempty" validate:"omitempty"`
-	NewSession         bool            `json:"new_session,omitempty" validate:"omitempty"`
-	BotResponse        interface{}     `json:"botResponse,omitempty" validate:"omitempty"`
+	ChannelId          entities.ChannelId       `json:"channel_id" validate:"required,oneof=12 3 7 5"`
+	DateTimestamp      string                   `json:"date_timestamp" validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
+	MiddlewareEndpoint string                   `json:"middleware_endpoint" validate:"required,url"`
+	CustName           string                   `json:"cust_name" validate:"required"`
+	StreamId           string                   `json:"stream_id,omitempty" validate:"omitempty"`
+	CustMessage        interface{}              `json:"cust_message,omitempty" validate:"omitempty"`
+	BotEndpoint        string                   `json:"bot_endpoint" validate:"omitempty,url"`
+	BotAccount         string                   `json:"bot_account" validate:"omitempty"`
+	Sid                string                   `json:"sid,omitempty" validate:"omitempty"`
+	NewSession         bool                     `json:"new_session,omitempty" validate:"omitempty"`
 }
 
 type IncomingDTO struct {
@@ -97,22 +95,25 @@ type IncomingDTO struct {
 
 type ParamsDTO struct {
 	Omnichannel entities.Omnichannel `json:"omnichannel" validate:"required,oneof=onx on5 on4"`
-	TenantId    string      `json:"tenantId" validate:"required"`
-	Account     string      `json:"account,omitempty" validate:"omitempty,required"`
+	TenantId    string               `json:"tenantId" validate:"required"`
+	Account     string               `json:"account,omitempty" validate:"omitempty,required"`
 	BotPlatform entities.BotPlatform `json:"botplatform" validate:"required,oneof=botpress"`
 }
 
 type HandoverDTO struct {
-	SID         string      `json:"sid,omitempty" validate:"required"`
-	AccountID   string      `json:"account_id" validate:"required"`
+	Sid         string      `json:"sid,omitempty" validate:"required"`
+	AccountId   string      `json:"account_id" validate:"required"`
 	UniqueId    string      `json:"unique_id" validate:"required"`
-	Message     string      `json:"message,omitempty" validate:"required"`
+	Email       string      `json:"email" validate:"omitempty,email"`
+	Name        string      `json:"name" validate:"omitemtpy"`
+	Message     string      `json:"message,omitempty" validate:"omitempty"`
 	CustMessage interface{} `json:"cust_message,omitempty" validate:"omitempty"`
+	GroupId     string      `json:"group_id,omitempty" validate:"omitempty"`
 }
 
 type EndDTO struct {
-	AccountID string `json:"account_id" validate:"required"`
+	AccountId string `json:"account_id" validate:"required"`
 	UniqueId  string `json:"unique_id" validate:"required"`
 	Message   string `json:"message,omitempty" validate:"required"`
-	SID       string `json:"sid,omitempty" validate:"required"`
+	Sid       string `json:"sid,omitempty" validate:"required"`
 }

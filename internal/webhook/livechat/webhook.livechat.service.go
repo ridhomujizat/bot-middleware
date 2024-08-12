@@ -47,7 +47,7 @@ func (l *LivechatService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 		AccountId:          payload.Account,
 		ChannelPlatform:    entities.SOCIOCONNECT,
 		ChannelSources:     entities.LIVECHAT,
-		ChannelID:          entities.LIVECHAT_ID,
+		ChannelId:          entities.LIVECHAT_ID,
 		MiddlewareEndpoint: fmt.Sprintf("%s/octopushchat/livechat/%s/%s", util.GodotEnv("BASE_URL"), params.Omnichannel, params.TenantId),
 		DateTimestamp:      payload.DateSend,
 		CustMessage:        payload,
@@ -66,7 +66,7 @@ func (l *LivechatService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 }
 
 func (l *LivechatService) Handover(params webhook.ParamsDTO, payload webhook.HandoverDTO) (interface{}, error) {
-	queueName := fmt.Sprintf("%s:%s:%s:%s:handover", params.Omnichannel, params.TenantId, util.GodotEnv("LIVECHAT_QUEUE_NAME"), payload.AccountID)
+	queueName := fmt.Sprintf("%s:%s:%s:%s:handover", params.Omnichannel, params.TenantId, util.GodotEnv("LIVECHAT_QUEUE_NAME"), payload.AccountId)
 	pterm.Info.Println("queueName", queueName)
 
 	additional := map[string]entities.ChannelPlatform{
@@ -90,7 +90,7 @@ func (l *LivechatService) Handover(params webhook.ParamsDTO, payload webhook.Han
 }
 
 func (l *LivechatService) End(params webhook.ParamsDTO, payload EndDTO) (interface{}, error) {
-	queueName := fmt.Sprintf("%s:%s:%s:%s:end", params.Omnichannel, params.TenantId, util.GodotEnv("TELEGRAM_QUEUE_NAME"), payload.AccountID)
+	queueName := fmt.Sprintf("%s:%s:%s:%s:end", params.Omnichannel, params.TenantId, util.GodotEnv("TELEGRAM_QUEUE_NAME"), payload.AccountId)
 	pterm.Info.Println("queueName", queueName)
 
 	additional := map[string]entities.ChannelPlatform{

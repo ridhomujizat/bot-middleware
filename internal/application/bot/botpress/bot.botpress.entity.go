@@ -164,13 +164,13 @@ type Session struct {
 	Slots          Slots         `json:"slots"`
 	Sid            string        `json:"sid"`
 	UniqueId       string        `json:"unique_id"`
-	AccountID      string        `json:"accountId"`
+	AccountId      string        `json:"accountId"`
 	ChannelSources string        `json:"channel_sources"`
 	Name           string        `json:"name"`
 }
 
 type LastMessage struct {
-	EventID         string    `json:"eventId"`
+	EventId         string    `json:"eventId"`
 	IncomingPreview string    `json:"incomingPreview"`
 	ReplyConfidence int64     `json:"replyConfidence"`
 	ReplySource     string    `json:"replySource"`

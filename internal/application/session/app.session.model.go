@@ -6,10 +6,10 @@ import (
 )
 
 type Session struct {
-	ID               uint                     `gorm:"primaryKey;autoIncrement;column:id" json:"id"`
-	SID              string                   `gorm:"type:varchar;not null;unique;column:sid" json:"sid"`
-	TenantID         string                   `gorm:"type:varchar;not null;column:tenant_id" json:"tenant_id"`
-	UniqueID         string                   `gorm:"type:varchar;not null;unique;column:unique_id" json:"unique_id"`
+	Id               uint                     `gorm:"primaryKey;autoIncrement;column:id" json:"id"`
+	Sid              string                   `gorm:"type:varchar;not null;unique;column:sid" json:"sid"`
+	TenantId         string                   `gorm:"type:varchar;not null;column:tenant_id" json:"tenant_id"`
+	UniqueId         string                   `gorm:"type:varchar;not null;unique;column:unique_id" json:"unique_id"`
 	BotPlatform      entities.BotPlatform     `gorm:"type:session_bot_platform_enum;not null;column:bot_platform" json:"bot_platform"`
 	State            string                   `gorm:"type:varchar;column:state" json:"state"`
 	Stacktrace       string                   `gorm:"type:text;column:stacktrace" json:"stacktrace"`
@@ -23,9 +23,10 @@ type Session struct {
 	ChannelAccount   string                   `gorm:"type:varchar;column:channel_account" json:"channel_account"`
 	ChannelSource    entities.ChannelSources  `gorm:"type:session_channel_source_enum;not null;column:channel_source" json:"channel_source"`
 	ChannelPlatform  entities.ChannelPlatform `gorm:"type:session_channel_platform_enum;not null;column:channel_platform" json:"channel_platform"`
-	ChannelID        entities.ChannelID       `gorm:"type:session_channel_id_enum;not null;column:channel_id" json:"channel_id"`
+	ChannelId        entities.ChannelId       `gorm:"type:session_channel_id_enum;not null;column:channel_id" json:"channel_id"`
 	Omnichannel      entities.Omnichannel     `gorm:"type:session_omnichannel_enum;not null;column:omnichannel" json:"omnichannel"`
 	BotDate          time.Time                `gorm:"type:timestamp;column:bot_date" json:"bot_date"`
+	IncomingDate     time.Time                `gorm:"type:timestamp;column:incoming_date" json:"incoming_date"`
 	CreatedAt        time.Time                `gorm:"column:create_at;autoCreateTime;not null" json:"created_at"`
 	UpdatedAt        time.Time                `gorm:"column:update_at;autoUpdateTime;not null" json:"updated_at"`
 }

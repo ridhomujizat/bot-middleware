@@ -6,6 +6,7 @@ import (
 	appAccount "bot-middleware/internal/application/account"
 	appBot "bot-middleware/internal/application/bot"
 	appSession "bot-middleware/internal/application/session"
+	"bot-middleware/internal/pkg/libs"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/messaging/rabbit"
 	"bot-middleware/internal/pkg/repository/postgre"
@@ -45,7 +46,7 @@ func main() {
 	}
 
 	// Init DB
-	applicationService := initDB()
+	applicationService, libsService := initDB()
 
 	// Init RabbitMQ
 	rabbitPublisher, rabbitSubscriber := initRabbitMQ(cfg)
@@ -54,7 +55,7 @@ func main() {
 	messagingService := messaging.NewMessagingGeneral(rabbitPublisher, rabbitSubscriber)
 
 	// Init Subscriber
-	initSubscriber(messagingService, applicationService)
+	initSubscriber(messagingService, applicationService, libsService)
 
 	// Init Router
 	router := initRouter(messagingService, applicationService)
@@ -115,7 +116,7 @@ func initRouter(messagingGeneral messaging.MessagingGeneral, applicationService 
 	return router
 }
 
-func initDB() *application.Services {
+func initDB() (*application.Services, *libs.LibsService) {
 	db, err := postgre.GetDB()
 	if err != nil {
 		util.HandleAppError(err, "main", "initDB", true)
@@ -126,10 +127,13 @@ func initDB() *application.Services {
 		SessionService: appSession.NewSessionService(db),
 		BotService:     appBot.NewBotService(db),
 	}
-	return services
 
+	libsService := libs.NewLibsService(db)
+
+	return services, libsService
 }
 
+<<<<<<< Updated upstream
 func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services) {
 	telegramSubscriber := workerTelegram.NewTelegramService(messagingGeneral, applicationService)
 	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false, telegramSubscriber.Process)
@@ -139,8 +143,14 @@ func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationServ
 	// workerTelegram.NewTelegramIncoming(messagingGeneral, applicationService, "exchange", "incoming", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false)
 	// workerTelegram.NewTelegramBotProcess(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false)
 	// workerTelegram.NewTelegramOutgoingHandler(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:outgoing", false)
+=======
+func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services, libsService *libs.LibsService) {
+	workerTelegram.NewTelegramIncoming(messagingGeneral, applicationService, "exchange", "incoming", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false)
+	workerTelegram.NewTelegramBotProcess(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false)
+>>>>>>> Stashed changes
 
-	livechatSubscriber := workerLivechat.NewLivechatService(messagingGeneral, applicationService)
+	livechatSubscriber := workerLivechat.NewLivechatService(messagingGeneral, applicationService, libsService)
 	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_INITIATE"), false, livechatSubscriber.Process)
 	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_BOT"), false, livechatSubscriber.InitiateBot)
+	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_OUTGOING"), false, livechatSubscriber.Outgoing)
 }

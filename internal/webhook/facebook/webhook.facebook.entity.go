@@ -3,19 +3,19 @@ package webhookFacebook
 import "bot-middleware/internal/webhook"
 
 type HopContext struct {
-	AppID    int    `json:"app_id" validate:"required,number"`
+	AppId    int    `json:"app_id" validate:"required,number"`
 	Metadata string `json:"metadata,omitempty" validate:"omitempty"`
 }
 
 type Sender struct {
-	ID         string `json:"id" validate:"required"`
+	Id         string `json:"id" validate:"required"`
 	FirstName  string `json:"first_name" validate:"required"`
 	LastName   string `json:"last_name" validate:"required"`
 	ProfilePic string `json:"profile_pic" validate:"required,url"`
 }
 
 type Recipient struct {
-	ID string `json:"id" validate:"required"`
+	Id string `json:"id" validate:"required"`
 }
 
 type QuickReply struct {
@@ -52,7 +52,7 @@ type Messaging struct {
 }
 
 type Entry struct {
-	ID         string       `json:"id" validate:"required"`
+	Id         string       `json:"id" validate:"required"`
 	Time       int          `json:"time" validate:"required,number"`
 	Messaging  []Messaging  `json:"messaging" validate:"required,dive"`
 	HopContext []HopContext `json:"hop_context,omitempty" validate:"omitempty,dive"`
@@ -73,8 +73,8 @@ type IncomingDTO struct {
 }
 
 type EndDTO struct {
-	AccountID string `json:"account_id" validate:"required"`
+	AccountId string `json:"account_id" validate:"required"`
 	UniqueId  string `json:"unique_id" validate:"required"`
 	Message   string `json:"message,omitempty" validate:"required"`
-	SID       string `json:"sid,omitempty" validate:"required"`
+	SId       string `json:"sid,omitempty" validate:"required"`
 }
