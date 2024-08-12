@@ -32,6 +32,7 @@ type loginPayload struct {
 
 func (a *BotpressService) Login(botAccount, tenantId string) (*LoginRespon, error) {
 	account, err := a.accountService.GetAccount(botAccount, tenantId)
+
 	if err != nil {
 		return nil, err
 	}

@@ -88,13 +88,13 @@ func (r *RabbitMQSubscriber) Subscribe(exchange, routingKey string, queueName st
 				err := handleFunc(msg.Body)
 				if err != nil {
 					log.Printf("Failed to process message: %v. Requeuing...\n", err)
-					msg.Nack(false, true)
+					// msg.Nack(false, true)
 				} else {
 					msg.Ack(false)
 				}
 			} else {
 				log.Printf("Received non-JSON message: %s", string(msg.Body))
-				msg.Nack(false, true)
+				// msg.Nack(false, true)
 			}
 		}
 	}()

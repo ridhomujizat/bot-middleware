@@ -15,7 +15,7 @@ func NewAccountService(db *gorm.DB) *AccountService {
 
 func (a *AccountService) GetAccount(acc string, tenant string) (*AccountSetting, error) {
 	var account AccountSetting
-	if err := a.db.Where("account = ?", acc).Where("tenantId = ?", tenant).First(&account).Error; err != nil {
+	if err := a.db.Where("account = ?", acc).Where("tenant_id = ?", tenant).First(&account).Error; err != nil {
 		return nil, err
 	}
 	return &account, nil
