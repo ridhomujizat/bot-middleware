@@ -69,7 +69,7 @@ func (t *TelegramService) handleNewSession(msg *webhookTelegram.IncomingDTO) err
 	if err != nil {
 		pterm.Error.Printfln("Error: %s", err)
 	}
-	msg.Additional.SID = sid
+	msg.Additional.Sid = sid
 	msg.Additional.NewSession = true
 	pterm.Info.Printfln("msg => %+v", msg)
 
@@ -81,7 +81,7 @@ func (t *TelegramService) handleNewSession(msg *webhookTelegram.IncomingDTO) err
 func (t *TelegramService) handleExistingSession(msg *webhookTelegram.IncomingDTO, session *appSession.Session) error {
 	msg.Additional.BotEndpoint = session.BotURL
 	msg.Additional.BotAccount = session.BotAccount
-	msg.Additional.SID = session.SID
+	msg.Additional.Sid = session.Sid
 	msg.Additional.NewSession = false
 
 	additional := msg.Additional

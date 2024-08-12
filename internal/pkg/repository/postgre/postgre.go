@@ -10,6 +10,7 @@ import (
 
 	"strconv"
 
+	"github.com/pterm/pterm"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	gormLogger "gorm.io/gorm/logger"
@@ -42,7 +43,7 @@ func initDBMaster() (*gorm.DB, error) {
 		util.HandleAppError(err, "initDBMaster", "ParseBool", true)
 	}
 
-	fmt.Println("sync", sync)
+	pterm.Warning.Printfln("Synchronize %+v", sync)
 
 	if sync {
 		err := gormDB.AutoMigrate(&appAccount.AccountSetting{})

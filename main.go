@@ -10,14 +10,15 @@ import (
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/messaging/rabbit"
 	"bot-middleware/internal/pkg/repository/postgre"
+	"bot-middleware/internal/pkg/repository/redis"
 	"bot-middleware/internal/pkg/util"
 	webhookFacebook "bot-middleware/internal/webhook/facebook"
 	webhookLivechat "bot-middleware/internal/webhook/livechat"
 	webhookWhatsapp "bot-middleware/internal/webhook/whatsapp"
+	"log"
 
 	webhookTole "bot-middleware/internal/webhook/tole"
 	workerLivechat "bot-middleware/internal/worker/livechat"
-	workerTelegram "bot-middleware/internal/worker/telegram"
 	"errors"
 	"fmt"
 
@@ -45,11 +46,18 @@ func main() {
 		util.HandleAppError(err, "main", "loadConfig", true)
 	}
 
+	// Init Redis
+	newRedisClient := redis.NewRedisClient(fmt.Sprintf("%s:%s", util.GodotEnv("REDIS_HOST"), util.GodotEnv("REDIS_PORT")), util.GodotEnv("REDIS_PASSWORD"), 0)
+	if newRedisClient == nil {
+		log.Fatal("Failed to create Redis client")
+	}
+	defer newRedisClient.Close()
+
 	// Init DB
 	applicationService, libsService := initDB()
 
 	// Init RabbitMQ
-	rabbitPublisher, rabbitSubscriber := initRabbitMQ(cfg)
+	rabbitPublisher, rabbitSubscriber := initRabbitMQ(cfg, newRedisClient)
 
 	// Init Messaging
 	messagingService := messaging.NewMessagingGeneral(rabbitPublisher, rabbitSubscriber)
@@ -58,7 +66,7 @@ func main() {
 	initSubscriber(messagingService, applicationService, libsService)
 
 	// Init Router
-	router := initRouter(messagingService, applicationService)
+	router := initRouter(messagingService)
 
 	port := util.GodotEnv("PORT")
 	if port == "" {
@@ -83,14 +91,13 @@ func loadConfig() (config.RabbitMQConfig, error) {
 	return cfg, nil
 }
 
-func initRabbitMQ(cfg config.RabbitMQConfig) (*rabbit.RabbitMQPublisher, *rabbit.RabbitMQSubscriber) {
+func initRabbitMQ(cfg config.RabbitMQConfig, redisClient *redis.RedisClient) (*rabbit.RabbitMQPublisher, *rabbit.RabbitMQSubscriber) {
 	rabbitPublisher, err := rabbit.NewRabbitMQPublisher(cfg)
 	if err != nil {
 		util.HandleAppError(err, "initRabbitMQ", "NewRabbitMQPublisher", true)
-
 	}
 
-	rabbitSubscriber, err := rabbit.NewRabbitMQSubscriber(cfg)
+	rabbitSubscriber, err := rabbit.NewRabbitMQSubscriber(cfg, redisClient)
 	if err != nil {
 		util.HandleAppError(err, "initRabbitMQ", "NewRabbitMQSubscriber", true)
 	}
@@ -98,7 +105,7 @@ func initRabbitMQ(cfg config.RabbitMQConfig) (*rabbit.RabbitMQPublisher, *rabbit
 	return rabbitPublisher, rabbitSubscriber
 }
 
-func initRouter(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services) *gin.Engine {
+func initRouter(messagingGeneral messaging.MessagingGeneral) *gin.Engine {
 	router := gin.Default()
 
 	// Add Swagger route
@@ -133,24 +140,23 @@ func initDB() (*application.Services, *libs.LibsService) {
 	return services, libsService
 }
 
-<<<<<<< Updated upstream
-func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services) {
-	telegramSubscriber := workerTelegram.NewTelegramService(messagingGeneral, applicationService)
-	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false, telegramSubscriber.Process)
-	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false, telegramSubscriber.InitiateBot)
-	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot:outgoing", false, telegramSubscriber.Outgoing)
+func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services, libsService *libs.LibsService) {
+	// telegramSubscriber := workerTelegram.NewTelegramService(messagingGeneral, applicationService)
+	// telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false, telegramSubscriber.Process)
+	// telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false, telegramSubscriber.InitiateBot)
+	// telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot:outgoing", false, telegramSubscriber.Outgoing)
 
 	// workerTelegram.NewTelegramIncoming(messagingGeneral, applicationService, "exchange", "incoming", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false)
 	// workerTelegram.NewTelegramBotProcess(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false)
 	// workerTelegram.NewTelegramOutgoingHandler(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:outgoing", false)
-=======
-func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services, libsService *libs.LibsService) {
-	workerTelegram.NewTelegramIncoming(messagingGeneral, applicationService, "exchange", "incoming", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false)
-	workerTelegram.NewTelegramBotProcess(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false)
->>>>>>> Stashed changes
 
 	livechatSubscriber := workerLivechat.NewLivechatService(messagingGeneral, applicationService, libsService)
 	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_INITIATE"), false, livechatSubscriber.Process)
 	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_BOT"), false, livechatSubscriber.InitiateBot)
 	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_OUTGOING"), false, livechatSubscriber.Outgoing)
+	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_END"), false, livechatSubscriber.End)
+	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_HANDOVER"), false, livechatSubscriber.Handover)
+	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_FINISH"), false, livechatSubscriber.Finish)
+	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_FORWARD"), false, livechatSubscriber.Forward)
+
 }
