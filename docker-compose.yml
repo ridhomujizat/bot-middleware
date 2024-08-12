@@ -49,11 +49,22 @@ services:
       DB_HOST: postgres
       DB_USERNAME: postgres
       DB_PASSWORD: 1Nfomedi@2022
-      DB_NAME: libra_dev
+      DB_NAME: libar_dev_v3
+      HOST: localhost:8100
+      DB_SYNC: 0
       DB_PORT: 5432
       RABBIT_URI: amqp://admin:rahmaridho@rabbitmq:5672/
       PORT: 8100
       TEST_PORT: onx_dev
+      TELEGRAM_QUEUE_NAME: telegram
+      LIVECHAT_QUEUE_NAME: incoming-bot-livechat
+      QUEUE_LIVECHAT_INITIATE: onx:onx_quitline:incoming-bot-livechat:onx_quitline_1
+      QUEUE_LIVECHAT_BOT: onx:onx_quitline:incoming-bot-livechat:onx_quitline_1:bot
+      QUEUE_LIVECHAT_OUTGOING: onx:onx_quitline:incoming-bot-livechat:onx_quitline_1:outgoing
+      QUEUE_LIVECHAT_FINISH: onx:onx_quitline:incoming-bot-livechat:onx_quitline_1:finish
+      QUEUE_LIVECHAT_HANDOVER: onx:onx_quitline:incoming-bot-livechat:onx_quitline_1:handover
+      QUEUE_LIVECHAT_FORWARD: onx:onx_quitline:incoming-bot-livechat:onx_quitline_1:forward
+      QUEUE_LIVECHAT_END: onx:onx_quitline:incoming-bot-livechat:onx_quitline_1:end
     ports:
       - "${PORT}:${PORT}"  # Map container port 8080 to host port 8080
     depends_on:
