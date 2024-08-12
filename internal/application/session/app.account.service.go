@@ -20,3 +20,7 @@ func (a *SessionService) FindSession(uniqueId, channelPlatform, channelSource, t
 	}
 	return &session, nil
 }
+
+func (a *SessionService) CreateSession(session *Session) error {
+	return a.db.Create(session).Error
+}

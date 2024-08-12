@@ -292,3 +292,65 @@ func (t *TelegramService) outgoingTelegram(tenantId string, accountId string, pa
 	}
 
 }
+
+func (t *TelegramService) Finish(body []byte) error {
+	var msg webhookTelegram.IncomingDTO
+	if err := json.Unmarshal(body, &msg); err != nil {
+		util.HandleAppError(err, "Telegram process", "Unmarshal", false)
+	}
+
+	session, err := t.application.SessionService.FindSession(msg.Additional.UniqueId, string(msg.Additional.ChannelPlatform), string(msg.Additional.ChannelSources), msg.Additional.TenantId)
+	if err != nil {
+		util.HandleAppError(err, "Telegram process", "FindSession telegram", false)
+	}
+
+	payload := appSession.Session{}
+	payload.TenantID = msg.Additional.TenantId
+	payload.UniqueID = msg.Additional.UniqueId
+	payload.BotPlatform = msg.Additional.BotPlatform
+	payload.BotAccount = msg.Additional.BotAccount
+	payload.BotAccount = msg.Additional.BotAccount
+
+	payload.State = (*msg.BotResponse)["state"].(string)
+	stacktrace, _ := json.Marshal((*msg.BotResponse)["stacktrace"])
+	payload.Stacktrace = string(stacktrace)
+	respons, _ := json.Marshal((*msg.BotResponse)["responses"])
+	payload.BotResponse = string(respons)
+	payload.BotURL = msg.Additional.BotEndpoint
+	payload.ChannelSource = msg.Additional.ChannelSources
+	payload.ChannelPlatform = msg.Additional.ChannelPlatform
+	payload.ChannelID = msg.Additional.ChannelID
+	payload.Omnichannel = msg.Additional.Omnichannel
+	botDate, _ := time.Parse(time.RFC3339, (*msg.BotResponse)["bot_date"].(string))
+	payload.BotDate = botDate
+
+	resOut, _ := json.Marshal(msg.OutgoingResponse)
+	payload.OutgoingResponse = string(resOut)
+	payload.BotAccount = msg.Additional.BotAccount
+	payload.ChannelAccount = msg.Additional.AccountId
+
+	if msg.CallbackQuery != nil {
+		payload.CustName = msg.Additional.CustName
+		payload.CustMessage = msg.CallbackQuery.Data
+		payload.CustMessageType = "postback"
+	} else {
+		payload.CustName = msg.Additional.CustName
+		payload.CustMessage = msg.Message.Text
+		payload.CustMessageType = "text"
+	}
+
+	if session == nil {
+		if err := t.application.SessionService.CreateSession(&payload); err != nil {
+			util.HandleAppError(err, "Telegram process", "CreateSession", false)
+			return err
+		}
+	} else {
+		fmt.Println("Update session")
+		// if err := t.application.SessionService.UpdateSession(&payload); err != nil {
+		// 	util.HandleAppError(err, "Telegram process", "UpdateSession", false)
+		// 	return err
+		// }
+	}
+
+	return nil
+}

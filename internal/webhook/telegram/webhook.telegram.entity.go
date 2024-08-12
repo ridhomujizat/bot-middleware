@@ -32,7 +32,7 @@ type IncomingDTO struct {
 }
 
 type CallbackQuery struct {
-	ID           int64                `json:"id"`
+	ID           string               `json:"id"`
 	From         CallbackQueryFrom    `json:"from"`
 	Message      CallbackQueryMessage `json:"message"`
 	ChatInstance string               `json:"chat_instance"`

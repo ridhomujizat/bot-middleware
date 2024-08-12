@@ -135,6 +135,7 @@ func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationServ
 	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false, telegramSubscriber.Process)
 	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false, telegramSubscriber.InitiateBot)
 	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot:outgoing", false, telegramSubscriber.Outgoing)
+	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot:finish", false, telegramSubscriber.Finish)
 
 	// workerTelegram.NewTelegramIncoming(messagingGeneral, applicationService, "exchange", "incoming", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false)
 	// workerTelegram.NewTelegramBotProcess(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false)

@@ -41,13 +41,13 @@ func (t *TelegramService) Incoming(params webhook.ParamsDTO, payload IncomingDTO
 	}
 
 	if payload.CallbackQuery != nil {
-		var lastName string
-		if payload.Message.From.LastName != nil {
-			lastName = *payload.Message.From.LastName
-		} else {
-			lastName = "" // Provide a default value or handle it appropriately
-		}
-		custName := fmt.Sprintf("%s %s", payload.CallbackQuery.From.FirstName, lastName)
+		// var lastName string
+		// if payload.Message.From.LastName != nil {
+		// 	lastName = *payload.Message.From.LastName
+		// } else {
+		// 	lastName = "" // Provide a default value or handle it appropriately
+		// }
+		custName := fmt.Sprintf("%s %s", payload.CallbackQuery.From.FirstName, "")
 		UniqueId := fmt.Sprintf("%d", payload.CallbackQuery.From.ID)
 		data.CustName = custName
 		data.UniqueId = UniqueId
