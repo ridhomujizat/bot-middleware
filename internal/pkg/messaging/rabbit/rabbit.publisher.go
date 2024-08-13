@@ -80,7 +80,7 @@ func (r *RabbitMQPublisher) Publish(queueName string, data interface{}) error {
 
 	id, err := gonanoid.New()
 	if err != nil {
-		log.Fatalf("Failed to generate NanoID: %v", err)
+		log.Fatalf("Failed to generate NanoId: %v", err)
 	}
 
 	headers := map[string]interface{}{

@@ -19,6 +19,7 @@ import (
 
 	webhookTole "bot-middleware/internal/webhook/tole"
 	workerLivechat "bot-middleware/internal/worker/livechat"
+	workerTelegram "bot-middleware/internal/worker/telegram"
 	"errors"
 	"fmt"
 
@@ -97,7 +98,7 @@ func initRabbitMQ(cfg config.RabbitMQConfig, redisClient *redis.RedisClient) (*r
 		util.HandleAppError(err, "initRabbitMQ", "NewRabbitMQPublisher", true)
 	}
 
-	rabbitSubscriber, err := rabbit.NewRabbitMQSubscriber(cfg, redisClient)
+	rabbitSubscriber, err := rabbit.NewRabbitMQSubscriber(cfg, rabbitPublisher, redisClient)
 	if err != nil {
 		util.HandleAppError(err, "initRabbitMQ", "NewRabbitMQSubscriber", true)
 	}
@@ -141,10 +142,10 @@ func initDB() (*application.Services, *libs.LibsService) {
 }
 
 func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services, libsService *libs.LibsService) {
-	// telegramSubscriber := workerTelegram.NewTelegramService(messagingGeneral, applicationService)
-	// telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false, telegramSubscriber.Process)
-	// telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false, telegramSubscriber.InitiateBot)
-	// telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot:outgoing", false, telegramSubscriber.Outgoing)
+	telegramSubscriber := workerTelegram.NewTelegramService(messagingGeneral, applicationService)
+	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false, telegramSubscriber.Process)
+	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false, telegramSubscriber.InitiateBot)
+	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot:outgoing", false, telegramSubscriber.Outgoing)
 
 	// workerTelegram.NewTelegramIncoming(messagingGeneral, applicationService, "exchange", "incoming", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false)
 	// workerTelegram.NewTelegramBotProcess(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false)

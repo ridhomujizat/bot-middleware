@@ -3,10 +3,12 @@ package rabbit
 import (
 	"bot-middleware/config"
 	"bot-middleware/internal/pkg/repository/redis"
+	"bot-middleware/internal/pkg/util"
 	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pterm/pterm"
@@ -18,9 +20,10 @@ type RabbitMQSubscriber struct {
 	connection *amqp.Connection
 	channel    *amqp.Channel
 	redis      *redis.RedisClient
+	publisher  *RabbitMQPublisher
 }
 
-func NewRabbitMQSubscriber(cfg config.RabbitMQConfig, redis *redis.RedisClient) (*RabbitMQSubscriber, error) {
+func NewRabbitMQSubscriber(cfg config.RabbitMQConfig, publisher *RabbitMQPublisher, redis *redis.RedisClient) (*RabbitMQSubscriber, error) {
 	conn, err := amqp.Dial(cfg.URL)
 	if err != nil {
 		return nil, err
@@ -36,6 +39,7 @@ func NewRabbitMQSubscriber(cfg config.RabbitMQConfig, redis *redis.RedisClient) 
 		connection: conn,
 		channel:    ch,
 		redis:      redis,
+		publisher:  publisher,
 	}, nil
 }
 
@@ -50,7 +54,7 @@ func (r *RabbitMQSubscriber) Subscribe(exchange, routingKey string, queueName st
 		nil,
 	)
 	if err != nil {
-		return err
+		return util.HandleAppError(err, "Rabbit Subscribe", "ExchangeDeclare", true)
 	}
 
 	q, err := r.channel.QueueDeclare(
@@ -62,7 +66,7 @@ func (r *RabbitMQSubscriber) Subscribe(exchange, routingKey string, queueName st
 		nil,
 	)
 	if err != nil {
-		return err
+		return util.HandleAppError(err, "Rabbit Subscribe", "QueueDeclare", true)
 	}
 
 	err = r.channel.QueueBind(
@@ -73,7 +77,8 @@ func (r *RabbitMQSubscriber) Subscribe(exchange, routingKey string, queueName st
 		nil,
 	)
 	if err != nil {
-		return err
+		return util.HandleAppError(err, "Rabbit Subscribe", "QueueBind", true)
+
 	}
 
 	msgs, err := r.channel.Consume(
@@ -86,7 +91,8 @@ func (r *RabbitMQSubscriber) Subscribe(exchange, routingKey string, queueName st
 		nil,
 	)
 	if err != nil {
-		return err
+		return util.HandleAppError(err, "Rabbit Subscribe", "Consume", true)
+
 	}
 
 	go func() {
@@ -108,7 +114,27 @@ func (r *RabbitMQSubscriber) Subscribe(exchange, routingKey string, queueName st
 				}
 
 				if retryCount >= 3 {
-					pterm.Error.Printfln("Message %s exceeded retry limit, discarding...", headerId)
+					pterm.Error.Printfln("Message %s exceeded retry limit, moving to fail...", headerId)
+
+					failQueueName := queueName
+					if !strings.HasPrefix(queueName, "fail:") {
+						failQueueName = "fail:" + queueName
+					}
+					var payload interface{}
+					err := json.Unmarshal(msg.Body, &payload)
+					if err != nil {
+						util.HandleAppError(err, "Rabbit Subscribe", "Unmarshal", false)
+						msg.Nack(false, true)
+						continue
+					}
+
+					err = r.publisher.Publish(failQueueName, payload)
+					if err != nil {
+						util.HandleAppError(err, "Rabbit Subscribe", "Publish", false)
+						msg.Nack(false, true)
+						continue
+					}
+
 					msg.Ack(false)
 					r.deleteRetryCount(retryKey)
 					continue
@@ -118,6 +144,7 @@ func (r *RabbitMQSubscriber) Subscribe(exchange, routingKey string, queueName st
 				if err != nil {
 					pterm.Warning.Printfln("Failed to process message: %v. Requeuing...", err)
 					r.incrementRetryCount(retryKey)
+					util.Sleep(2000)
 					msg.Nack(false, true)
 				} else {
 					msg.Ack(false)

@@ -31,7 +31,7 @@ func NewTelegramService(messagingGeneral messaging.MessagingGeneral, application
 func (t *TelegramService) Subscribe(exchange, routingKey, queueName string, allowNonJsonMessages bool, handleFunc func([]byte) error) {
 	go func() {
 		if err := t.messagingGeneral.Subscribe(exchange, routingKey, queueName, allowNonJsonMessages, handleFunc); err != nil {
-			util.HandleAppError(err, "subscribe", "Subscribe", true)
+			util.HandleAppError(err, "Telegram Subscribe", "Subscribe", true)
 		}
 	}()
 }
@@ -45,7 +45,7 @@ func (t *TelegramService) Process(body []byte) error {
 	session, err := t.application.SessionService.FindSession(msg.Additional.UniqueId, string(msg.Additional.ChannelPlatform), string(msg.Additional.ChannelSources), msg.Additional.TenantId)
 
 	if err != nil {
-		util.HandleAppError(err, "Livechat process", "FindSession", false)
+		util.HandleAppError(err, "Telegram process", "FindSession", false)
 		return err
 	}
 	pterm.Info.Println("session", session)
@@ -264,7 +264,10 @@ func (t *TelegramService) Outgoing(body []byte) error {
 func (t *TelegramService) outgoingTelegram(tenantId string, accountId string, payload interface{}) ([]byte, error) {
 	account, errAcc := t.application.AccountService.GetAccount(accountId, tenantId)
 	if errAcc != nil {
-		util.HandleAppError(errAcc, "get user by account id", "OutgoingTelegramText", false)
+		return nil, util.HandleAppError(errAcc, "get user by account id", "OutgoingTelegramText", true)
+	}
+	if account == nil {
+		return nil, fmt.Errorf("accountId: %+v, tenantId: %+v not found", accountId, tenantId)
 	}
 
 	jsonData, err := json.Marshal(payload)

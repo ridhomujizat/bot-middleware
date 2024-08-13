@@ -33,7 +33,7 @@ func (t *TelegramIncoming) subscribe(exchange, routingKey, queueName string, all
 
 	go func() {
 		if err := t.messagingGeneral.Subscribe(exchange, routingKey, queueName, allowNonJsonMessages, handleFunc); err != nil {
-			util.HandleAppError(err, "subscribe", "Subscribe", false)
+			util.HandleAppError(err, "Telegram subscribe", "Subscribe", false)
 		}
 	}()
 }

@@ -39,7 +39,7 @@ func (a *BotpressService) Login(botAccount, tenantId string) (*LoginRespon, erro
 	dayUpdate := account.UpdatedAt
 	diffDays := today.Sub(dayUpdate).Hours() / 24
 
-	if diffDays >= 6 || account.Token == "" {
+	if diffDays >= 1 || account.Token == "" {
 		payloadLogin := loginPayload{
 			Email:    account.Username,
 			Password: account.Password,
@@ -49,12 +49,16 @@ func (a *BotpressService) Login(botAccount, tenantId string) (*LoginRespon, erro
 			return nil, util.HandleAppError(err, "Botpress Login", "JSON Marshal", true)
 		}
 
-		respon, _, errResponse := util.HttpPost(account.AuthURL, jsonData, map[string]string{
+		respon, errCode, errResponse := util.HttpPost(account.AuthURL, jsonData, map[string]string{
 			"Content-Type": "application/json",
 		})
 		if errResponse != nil {
 			util.HandleAppError(errResponse, "HttpPost", "Login", false)
 			return nil, errResponse
+		}
+		if errCode >= 400 {
+			util.HandleAppError(errResponse, "HttpPost", "Login", false)
+			return nil, fmt.Errorf("error code: %d, with response: %+v", errCode, respon)
 		}
 
 		var loginResponse LoginBotPressDTO
@@ -71,7 +75,6 @@ func (a *BotpressService) Login(botAccount, tenantId string) (*LoginRespon, erro
 			Token:   token,
 			BaseURL: account.BaseURL,
 		}, nil
-
 	} else {
 		return &LoginRespon{
 			Token:   account.Token,
