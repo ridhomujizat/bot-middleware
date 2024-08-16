@@ -6,7 +6,6 @@ import (
 	"bot-middleware/internal/pkg/util"
 	"encoding/json"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -17,6 +16,7 @@ import (
 )
 
 type RabbitMQSubscriber struct {
+	config     config.RabbitMQConfig
 	connection *amqp.Connection
 	channel    *amqp.Channel
 	redis      *redis.RedisClient
@@ -24,140 +24,195 @@ type RabbitMQSubscriber struct {
 }
 
 func NewRabbitMQSubscriber(cfg config.RabbitMQConfig, publisher *RabbitMQPublisher, redis *redis.RedisClient) (*RabbitMQSubscriber, error) {
-	conn, err := amqp.Dial(cfg.URL)
+	subscriber := &RabbitMQSubscriber{
+		config:    cfg,
+		publisher: publisher,
+		redis:     redis,
+	}
+
+	err := subscriber.connect()
 	if err != nil {
 		return nil, err
 	}
 
-	ch, err := conn.Channel()
-	if err != nil {
-		conn.Close()
-		return nil, err
-	}
+	go subscriber.handleConnectionClosure()
 
-	return &RabbitMQSubscriber{
-		connection: conn,
-		channel:    ch,
-		redis:      redis,
-		publisher:  publisher,
-	}, nil
+	return subscriber, nil
+}
+
+func (r *RabbitMQSubscriber) connect() error {
+	var err error
+	for {
+		r.connection, err = amqp.Dial(r.config.URL)
+		if err != nil {
+			pterm.Warning.Printfln("Failed to connect to RabbitMQ, retrying in 5 seconds: %v", err)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+
+		r.channel, err = r.connection.Channel()
+		if err != nil {
+			pterm.Warning.Printfln("Failed to open a channel, retrying in 5 seconds: %v", err)
+			r.connection.Close()
+			time.Sleep(5 * time.Second)
+			continue
+		}
+
+		pterm.Info.Println("Connected to RabbitMQ")
+		return nil
+	}
+}
+
+func (r *RabbitMQSubscriber) handleConnectionClosure() {
+	closeCh := r.connection.NotifyClose(make(chan *amqp.Error))
+	for err := range closeCh {
+		if err != nil {
+			pterm.Error.Printfln("Connection closed: %v. Reconnecting...", err)
+			r.reconnect()
+		}
+	}
+}
+
+func (r *RabbitMQSubscriber) reconnect() {
+	r.Close()
+	time.Sleep(5 * time.Second)
+	err := r.connect()
+	if err != nil {
+		pterm.Fatal.Printfln("Failed to reconnect to RabbitMQ: %v", err)
+	}
 }
 
 func (r *RabbitMQSubscriber) Subscribe(exchange, routingKey string, queueName string, allowNonJsonMessages bool, handleFunc func([]byte) error) error {
-	err := r.channel.ExchangeDeclare(
-		exchange,
-		"direct",
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		return util.HandleAppError(err, "Rabbit Subscribe", "ExchangeDeclare", true)
-	}
-
-	q, err := r.channel.QueueDeclare(
-		queueName,
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		return util.HandleAppError(err, "Rabbit Subscribe", "QueueDeclare", true)
-	}
-
-	err = r.channel.QueueBind(
-		q.Name,
-		routingKey,
-		exchange,
-		false,
-		nil,
-	)
-	if err != nil {
-		return util.HandleAppError(err, "Rabbit Subscribe", "QueueBind", true)
-
-	}
-
-	msgs, err := r.channel.Consume(
-		q.Name,
-		"",
-		false,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		return util.HandleAppError(err, "Rabbit Subscribe", "Consume", true)
-
-	}
-
-	go func() {
-		for msg := range msgs {
-			if allowNonJsonMessages || json.Valid(msg.Body) {
-				headerId, ok := msg.Headers["id"].(string)
-				if !ok {
-					log.Println("Message missing 'id' header, skipping...")
-					msg.Ack(false)
-					continue
-				}
-
-				retryKey := fmt.Sprintf("retry:%s", headerId)
-				retryCount, err := r.getRetryCount(retryKey)
-				if err != nil {
-					pterm.Error.Printfln("Failed to get retry count for message %s: %v", headerId, err)
-					msg.Nack(false, true)
-					continue
-				}
-
-				if retryCount >= 3 {
-					pterm.Error.Printfln("Message %s exceeded retry limit, moving to fail...", headerId)
-
-					failQueueName := queueName
-					if !strings.HasPrefix(queueName, "fail:") {
-						failQueueName = "fail:" + queueName
-					}
-					var payload interface{}
-					err := json.Unmarshal(msg.Body, &payload)
-					if err != nil {
-						util.HandleAppError(err, "Rabbit Subscribe", "Unmarshal", false)
-						msg.Nack(false, true)
-						continue
-					}
-
-					err = r.publisher.Publish(failQueueName, payload)
-					if err != nil {
-						util.HandleAppError(err, "Rabbit Subscribe", "Publish", false)
-						msg.Nack(false, true)
-						continue
-					}
-
-					msg.Ack(false)
-					r.deleteRetryCount(retryKey)
-					continue
-				}
-
-				err = handleFunc(msg.Body)
-				if err != nil {
-					pterm.Warning.Printfln("Failed to process message: %v. Requeuing...", err)
-					r.incrementRetryCount(retryKey)
-					util.Sleep(2000)
-					msg.Nack(false, true)
-				} else {
-					msg.Ack(false)
-				}
-			} else {
-				log.Printf("Received non-JSON message: %s", string(msg.Body))
-				msg.Nack(false, true)
+	for {
+		if r.connection == nil || r.channel == nil {
+			if err := r.connect(); err != nil {
+				return err
 			}
 		}
-	}()
 
-	pterm.Info.Printfln(" [*] Waiting for messages in %s", queueName)
-	select {}
+		err := r.channel.ExchangeDeclare(
+			exchange,
+			"direct",
+			true,
+			false,
+			false,
+			false,
+			nil,
+		)
+		if err != nil {
+			pterm.Error.Printfln("ExchangeDeclare failed: %v. Reconnecting...", err)
+			r.reconnect()
+			continue
+		}
+
+		q, err := r.channel.QueueDeclare(
+			queueName,
+			true,
+			false,
+			false,
+			false,
+			nil,
+		)
+		if err != nil {
+			pterm.Error.Printfln("QueueDeclare failed: %v. Reconnecting...", err)
+			r.reconnect()
+			continue
+		}
+
+		err = r.channel.QueueBind(
+			q.Name,
+			routingKey,
+			exchange,
+			false,
+			nil,
+		)
+		if err != nil {
+			pterm.Error.Printfln("QueueBind failed: %v. Reconnecting...", err)
+			r.reconnect()
+			continue
+		}
+
+		msgs, err := r.channel.Consume(
+			q.Name,
+			"",
+			false,
+			false,
+			false,
+			false,
+			nil,
+		)
+		if err != nil {
+			pterm.Error.Printfln("Consume failed: %v. Reconnecting...", err)
+			r.reconnect()
+			continue
+		}
+
+		go r.handleMessages(msgs, allowNonJsonMessages, queueName, handleFunc)
+
+		pterm.Info.Printfln(" [*] Waiting for messages in %s", queueName)
+		select {}
+	}
+}
+
+func (r *RabbitMQSubscriber) handleMessages(msgs <-chan amqp.Delivery, allowNonJsonMessages bool, queueName string, handleFunc func([]byte) error) {
+	for msg := range msgs {
+		if allowNonJsonMessages || json.Valid(msg.Body) {
+			headerId, ok := msg.Headers["id"].(string)
+			if !ok {
+				pterm.Warning.Println("Message missing 'id' header, skipping...")
+				msg.Ack(false)
+				continue
+			}
+
+			retryKey := fmt.Sprintf("retry:%s", headerId)
+			retryCount, err := r.getRetryCount(retryKey)
+			if err != nil {
+				pterm.Error.Printfln("Failed to get retry count for message %s: %v", headerId, err)
+				msg.Nack(false, true)
+				continue
+			}
+
+			if retryCount >= 3 {
+				pterm.Error.Printfln("Message %s exceeded retry limit, moving to fail...", headerId)
+
+				failQueueName := queueName
+				if !strings.HasPrefix(queueName, "fail:") {
+					failQueueName = "fail:" + queueName
+				}
+				var payload interface{}
+				err := json.Unmarshal(msg.Body, &payload)
+				if err != nil {
+					pterm.Error.Printfln("Unmarshal failed: %v", err)
+					msg.Nack(false, true)
+					continue
+				}
+
+				err = r.publisher.Publish(failQueueName, payload)
+				if err != nil {
+					pterm.Error.Printfln("Publish failed: %v", err)
+					msg.Nack(false, true)
+					continue
+				}
+
+				msg.Ack(false)
+				r.deleteRetryCount(retryKey)
+				continue
+			}
+
+			err = handleFunc(msg.Body)
+			if err != nil {
+				pterm.Warning.Printfln("Failed to process message: %v. Requeuing...", err)
+				r.incrementRetryCount(retryKey)
+				util.Sleep(2000)
+				msg.Nack(false, true)
+			} else {
+				msg.Ack(false)
+			}
+		} else {
+			pterm.Warning.Printfln("Received non-JSON message: %s", string(msg.Body))
+			msg.Nack(false, true)
+		}
+	}
 }
 
 func (r *RabbitMQSubscriber) getRetryCount(key string) (int, error) {
@@ -207,6 +262,10 @@ func (r *RabbitMQSubscriber) deleteRetryCount(key string) {
 }
 
 func (r *RabbitMQSubscriber) Close() {
-	r.channel.Close()
-	r.connection.Close()
+	if r.channel != nil {
+		r.channel.Close()
+	}
+	if r.connection != nil {
+		r.connection.Close()
+	}
 }

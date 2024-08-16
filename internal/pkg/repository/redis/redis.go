@@ -1,11 +1,13 @@
 package redis
 
 import (
-	"bot-middleware/internal/pkg/util"
 	"context"
 	"fmt"
 	"time"
 
+	"bot-middleware/internal/pkg/util"
+
+	"github.com/pterm/pterm"
 	redisClient "github.com/redis/go-redis/v9"
 )
 
@@ -16,14 +18,27 @@ type RedisClient struct {
 }
 
 func NewRedisClient(addr, password string, db int) *RedisClient {
-	rdb := redisClient.NewClient(&redisClient.Options{
-		Addr:     addr,
-		Password: password,
-		DB:       db,
-	})
+	var rdb *redisClient.Client
+	var err error
 
-	if err := rdb.Ping(ctx).Err(); err != nil {
-		util.HandleAppError(err, "Redis", "Ping", false)
+	for retries := 0; retries < 5; retries++ {
+		rdb = redisClient.NewClient(&redisClient.Options{
+			Addr:     addr,
+			Password: password,
+			DB:       db,
+		})
+
+		err = rdb.Ping(ctx).Err()
+		if err == nil {
+			break
+		}
+
+		pterm.Error.Printfln("retry %d: failed to connect to Redis: %+v", retries+1, err)
+		time.Sleep(2 * time.Second)
+	}
+
+	if err != nil {
+		util.HandleAppError(fmt.Errorf("failed to connect to Redis after retries: %w", err), "Redis", "Connect", true)
 		return nil
 	}
 
@@ -35,7 +50,7 @@ func NewRedisClient(addr, password string, db int) *RedisClient {
 func (r *RedisClient) Set(key string, value interface{}, expiration time.Duration) error {
 	err := r.client.Set(ctx, key, value, expiration).Err()
 	if err != nil {
-		return util.HandleAppError(fmt.Errorf("failed set key %s: %w", key, err), "Redis", "Set", true)
+		return util.HandleAppError(fmt.Errorf("failed to set key %s: %w", key, err), "Redis", "Set", true)
 	}
 	return nil
 }
@@ -44,9 +59,10 @@ func (r *RedisClient) Get(key string) (string, error) {
 	val, err := r.client.Get(ctx, key).Result()
 	if err != nil {
 		if err == redisClient.Nil {
+			util.HandleAppError(fmt.Errorf("key %s not found", key), "Redis", "Get", false)
 			return "", redisClient.Nil
 		}
-		return "", util.HandleAppError(fmt.Errorf("failed get key %s: %w", key, err), "Redis", "Get", true)
+		return "", util.HandleAppError(fmt.Errorf("failed to get key %s: %w", key, err), "Redis", "Get", true)
 	}
 	return val, nil
 }
@@ -54,7 +70,7 @@ func (r *RedisClient) Get(key string) (string, error) {
 func (r *RedisClient) Del(key string) error {
 	err := r.client.Del(ctx, key).Err()
 	if err != nil {
-		return util.HandleAppError(fmt.Errorf("failed del key %s: %w", key, err), "Redis", "Del", true)
+		return util.HandleAppError(fmt.Errorf("failed to delete key %s: %w", key, err), "Redis", "Del", true)
 	}
 	return nil
 }
@@ -62,7 +78,7 @@ func (r *RedisClient) Del(key string) error {
 func (r *RedisClient) Exists(key string) (bool, error) {
 	val, err := r.client.Exists(ctx, key).Result()
 	if err != nil {
-		return false, util.HandleAppError(fmt.Errorf("failed get exists key %s: %w", key, err), "Redis", "Exists", true)
+		return false, util.HandleAppError(fmt.Errorf("failed to check existence of key %s: %w", key, err), "Redis", "Exists", true)
 	}
 	return val > 0, nil
 }
@@ -70,11 +86,15 @@ func (r *RedisClient) Exists(key string) (bool, error) {
 func (r *RedisClient) Expire(key string, expiration time.Duration) error {
 	err := r.client.Expire(ctx, key, expiration).Err()
 	if err != nil {
-		return util.HandleAppError(fmt.Errorf("failed set expiration key %s: %w", key, err), "Redis", "Expire", true)
+		return util.HandleAppError(fmt.Errorf("failed to set expiration for key %s: %w", key, err), "Redis", "Expire", true)
 	}
 	return nil
 }
 
 func (r *RedisClient) Close() error {
-	return r.client.Close()
+	err := r.client.Close()
+	if err != nil {
+		return util.HandleAppError(fmt.Errorf("failed to close Redis connection: %w", err), "Redis", "Close", true)
+	}
+	return nil
 }
