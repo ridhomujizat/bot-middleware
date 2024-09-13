@@ -113,6 +113,11 @@ type Choice struct {
 	Title string `json:"title"`
 	Value string `json:"value"`
 }
+
+type Action struct {
+	Title   string `json:"title"`
+	Payload string `json:"payload"`
+}
 type Carousel struct {
 	Title    string    `json:"title"`
 	SubTitle string    `json:"subTitle"`

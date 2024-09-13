@@ -45,6 +45,8 @@ func (l *LibsService) Text(acc, tenant string, payload interface{}) (interface{}
 
 	res, _, errResponse := util.HttpPost(fmt.Sprintf("%s/bot/reply/text", account.BaseURL), payloadData, map[string]string{
 		"Content-Type": "application/json",
+		"x-key":        account.Token,
+		"account_id":   acc,
 	})
 	if errResponse != nil {
 		return nil, errResponse
@@ -70,8 +72,10 @@ func (l *LibsService) Button(acc, tenant string, payload interface{}) (interface
 		return nil, util.HandleAppError(err, "Lib Button", "JSON Marshal", true)
 	}
 
-	res, _, errResponse := util.HttpPost(fmt.Sprintf("%s/bot/reply/button", account.BaseURL), payloadData, map[string]string{
+	res, _, errResponse := util.HttpPost(account.BaseURL, payloadData, map[string]string{
 		"Content-Type": "application/json",
+		"x-key":        account.Token,
+		"account_id":   acc,
 	})
 	if errResponse != nil {
 		return nil, errResponse
@@ -97,8 +101,10 @@ func (l *LibsService) Carousel(acc, tenant string, payload interface{}) (interfa
 		return nil, util.HandleAppError(err, "Lib Carousel", "JSON Marshal", true)
 	}
 
-	res, _, errResponse := util.HttpPost(fmt.Sprintf("%s/bot/reply/carousel", account.BaseURL), payloadData, map[string]string{
+	res, _, errResponse := util.HttpPost(account.BaseURL, payloadData, map[string]string{
 		"Content-Type": "application/json",
+		"x-key":        account.Token,
+		"account_id":   acc,
 	})
 	if errResponse != nil {
 		return nil, errResponse

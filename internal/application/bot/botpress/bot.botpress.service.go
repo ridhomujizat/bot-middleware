@@ -5,6 +5,7 @@ import (
 	"bot-middleware/internal/pkg/util"
 	webhookLivechat "bot-middleware/internal/webhook/livechat"
 	webhookTelegram "bot-middleware/internal/webhook/telegram"
+	webhookWhatsapp "bot-middleware/internal/webhook/whatsapp"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -157,19 +158,52 @@ func (a *BotpressService) BPTLGOF(payload *webhookTelegram.IncomingDTO) (*AskPay
 	return nil, errors.New("no valid message or callback query found in payload")
 }
 
-func (a *BotpressService) ParsingPayloadTelegram(payload webhookTelegram.IncomingDTO) (*AskPayloadBotpresDTO, error) {
+func (a *BotpressService) BPWASC(payload webhookWhatsapp.IncomingDTO) (*AskPayloadBotpresDTO, error) {
 	var botPayload AskPayloadBotpresDTO
 
-	if payload.CallbackQuery != nil {
-		botPayload.Type = BotpressMessageType(POSTBACK)
-		botPayload.Text = payload.CallbackQuery.Message.Text
-		botPayload.Metadata = *payload.Additional
-		botPayload.Payload = payload.CallbackQuery.Data
-	} else {
+	switch payload.Messages[0].Type {
+	case "text":
 		botPayload.Type = BotpressMessageType(TEXT)
-		botPayload.Text = payload.Message.Text
-		botPayload.Metadata = *payload.Additional
-	}
+		botPayload.Text = payload.Messages[0].Text.Body
+		botPayload.Metadata = payload.Additional
+		botPayload.Metadata.CustMessage = botPayload.Text
 
+	case "interactive":
+		switch payload.Messages[0].Interactive.Type {
+		case "list_reply":
+			botPayload.Type = BotpressMessageType(SINGLE_CHOICE)
+			botPayload.Text = payload.Messages[0].Interactive.List_reply.Id
+			botPayload.Metadata = payload.Additional
+			botPayload.Metadata.CustMessage = botPayload.Text
+		case "button_reply":
+			botPayload.Type = BotpressMessageType(SINGLE_CHOICE)
+			botPayload.Text = payload.Messages[0].Interactive.Button_reply.Id
+			botPayload.Metadata = payload.Additional
+			botPayload.Metadata.CustMessage = botPayload.Text
+		default:
+			return nil, fmt.Errorf("unsupported interactive type: %s", payload.Messages[0].Interactive.Type)
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported action: %s", payload.Messages[0].Type)
+	}
 	return &botPayload, nil
+
 }
+
+// func (a *BotpressService) ParsingPayloadTelegram(payload webhookTelegram.IncomingDTO) (*AskPayloadBotpresDTO, error) {
+// 	var botPayload AskPayloadBotpresDTO
+
+// 	if payload.CallbackQuery != nil {
+// 		botPayload.Type = BotpressMessageType(POSTBACK)
+// 		botPayload.Text = payload.CallbackQuery.Message.Text
+// 		botPayload.Metadata = *payload.Additional
+// 		botPayload.Payload = payload.CallbackQuery.Data
+// 	} else {
+// 		botPayload.Type = BotpressMessageType(TEXT)
+// 		botPayload.Text = payload.Message.Text
+// 		botPayload.Metadata = *payload.Additional
+// 	}
+
+// 	return &botPayload, nil
+// }
