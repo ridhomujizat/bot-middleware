@@ -176,23 +176,51 @@ func (l *WhatsappService) processOutgoingLivechatBotpress(msg *webhookWhatsapp.I
 
 	msg.OutgoingResponse = make([]interface{}, 0)
 
-	for _, outgoing := range botResponse.(map[string]interface{})["responses"].([]botpress.Response) {
+	responses, ok := botResponse.(map[string]interface{})["responses"].([]interface{})
+	if !ok || responses == nil {
+		return fmt.Errorf("invalid type or nil for responses field")
+	}
+
+	for _, outgoing := range botResponse.(map[string]interface{})["responses"].([]interface{}) {
 		var response interface{}
 		var err error
-		result := make(map[string]interface{})
+		outgoingMap, ok := outgoing.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("invalid type for outgoing response")
+		}
 
-		switch outgoing.Type {
+		// Assert the type field to string
+		responseType, ok := outgoingMap["type"].(string)
+		if !ok {
+			return fmt.Errorf("invalid type for response type")
+		}
+
+		var result map[string]interface{}
+
+		switch responseType {
 		case "text":
+			// Assert the text field to string
+			text, ok := outgoingMap["text"].(string)
+			if !ok {
+				return fmt.Errorf("invalid type for text field")
+			}
 			payload := OutgoingTextSocioconnect{
 				RecipientType:    "INDIVIDUAL",
 				MessagingProduct: "WHATSAPP",
 				To:               additional.UniqueId,
 				Type:             "TEXT",
-				Text:             Text{Body: outgoing.Text},
+				Text:             Text{Body: text},
 			}
-			response, err = l.libsService.Text(additional.TenantId, additional.AccountId, payload)
+			response, err = l.libsService.Text(additional.AccountId, additional.TenantId, payload)
+			if err != nil {
+				return fmt.Errorf("failed to send text message: %v", err)
+			}
 		case "single-choice":
-			if !outgoing.IsDropdown {
+			isDropdown, ok := outgoingMap["isDropdown"].(bool)
+			if !ok {
+				return fmt.Errorf("invalid type for isDropdown field")
+			}
+			if !isDropdown {
 				payload := OutgoingButtonSocioconnect{
 					RecipientType:    "INDIVIDUAL",
 					MessagingProduct: "WHATSAPP",
@@ -200,14 +228,20 @@ func (l *WhatsappService) processOutgoingLivechatBotpress(msg *webhookWhatsapp.I
 					Type:             "INTERACTIVE",
 					Interactive: Interactive{
 						Type: "BUTTON",
-						Body: Body{Text: outgoing.Text},
+						Body: Body{Text: outgoingMap["text"].(string)},
 						Action: Action{
-							Buttons: mapChoicesToButtons(outgoing.Choices),
+							Buttons: mapChoicesToButtons(outgoingMap["choices"].([]botpress.Choice)),
 						},
 					},
 				}
-				response, err = l.libsService.Button(additional.TenantId, additional.AccountId, payload)
+				response, err = l.libsService.Button(additional.AccountId, additional.TenantId, payload)
 			} else {
+				// Ensure outgoingMap["choices"] is not nil and is of the correct type
+				choices, ok := outgoingMap["choices"].([]botpress.Choice)
+				if !ok {
+					return fmt.Errorf("invalid type or nil for choices field")
+				}
+
 				payload := OutgoingListSocioconnect{
 					RecipientType:    "INDIVIDUAL",
 					MessagingProduct: "WHATSAPP",
@@ -215,16 +249,17 @@ func (l *WhatsappService) processOutgoingLivechatBotpress(msg *webhookWhatsapp.I
 					Type:             "INTERACTIVE",
 					Interactive: Interactive{
 						Type: "LIST",
-						Body: Body{Text: outgoing.Text},
+						Body: Body{Text: outgoingMap["text"].(string)},
 						Action: Action{
-							Button:   outgoing.Text,
-							Sections: mapChoicesToSections(outgoing.Choices),
+							Button:   outgoingMap["text"].(string),
+							Sections: mapChoicesToSections(choices),
 						},
 					},
 				}
-				response, err = l.libsService.Button(additional.TenantId, additional.AccountId, payload)
+				response, err = l.libsService.Button(additional.AccountId, additional.TenantId, payload)
 			}
 		case "carousel":
+			outgoingStruct := outgoing.(map[string]interface{})
 			payload := OutgoingButtonSocioconnect{
 				RecipientType:    "INDIVIDUAL",
 				MessagingProduct: "WHATSAPP",
@@ -234,20 +269,23 @@ func (l *WhatsappService) processOutgoingLivechatBotpress(msg *webhookWhatsapp.I
 					Type: "BUTTON",
 					Header: Header{
 						Type:  "IMAGE",
-						Image: Image{Link: outgoing.Items[0].Image},
+						Image: Image{Link: outgoingStruct["items"].([]botpress.Carousel)[0].Image},
 					},
-					Body: Body{Text: outgoing.Items[0].SubTitle},
+					Body: Body{Text: outgoingStruct["items"].([]botpress.Carousel)[0].SubTitle},
 					Action: Action{
-						Buttons: mapActionsToButtons(outgoing.Items),
+						Buttons: mapActionsToButtons(outgoingStruct["items"].([]botpress.Carousel)),
 					},
 				},
 			}
-			response, err = l.libsService.Button(additional.TenantId, additional.AccountId, payload)
+			response, err = l.libsService.Button(additional.AccountId, additional.TenantId, payload)
 
 		}
 		if err != nil {
 			return err
 		}
+
+		// Initialize the result map
+		result = make(map[string]interface{})
 
 		result["response"] = response
 		result["sent_date"] = time.Now().Format("2006-01-02 15:04:05")

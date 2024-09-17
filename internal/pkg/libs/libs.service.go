@@ -7,7 +7,6 @@ import (
 	"bot-middleware/internal/pkg/util"
 	"bot-middleware/internal/webhook"
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"gorm.io/gorm"
@@ -33,7 +32,7 @@ func (l *LibsService) GetAccount(acc, tenant, platform string) (*appAccount.Acco
 }
 
 func (l *LibsService) Text(acc, tenant string, payload interface{}) (interface{}, error) {
-	account, err := l.GetAccount(acc, tenant, string(entities.LiveChatOctopush))
+	account, err := l.GetAccount(acc, tenant, string(entities.WhatsAppSocio))
 	if err != nil {
 		return nil, err
 	}
@@ -42,8 +41,7 @@ func (l *LibsService) Text(acc, tenant string, payload interface{}) (interface{}
 	if err != nil {
 		return nil, util.HandleAppError(err, "Lib Text", "JSON Marshal", true)
 	}
-
-	res, _, errResponse := util.HttpPost(fmt.Sprintf("%s/bot/reply/text", account.BaseURL), payloadData, map[string]string{
+	res, _, errResponse := util.HttpPost(account.BaseURL, payloadData, map[string]string{
 		"Content-Type": "application/json",
 		"x-key":        account.Token,
 		"account_id":   acc,
@@ -62,7 +60,7 @@ func (l *LibsService) Text(acc, tenant string, payload interface{}) (interface{}
 }
 
 func (l *LibsService) Button(acc, tenant string, payload interface{}) (interface{}, error) {
-	account, err := l.GetAccount(acc, tenant, string(entities.LiveChatOctopush))
+	account, err := l.GetAccount(acc, tenant, string(entities.WhatsAppSocio))
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +89,7 @@ func (l *LibsService) Button(acc, tenant string, payload interface{}) (interface
 }
 
 func (l *LibsService) Carousel(acc, tenant string, payload interface{}) (interface{}, error) {
-	account, err := l.GetAccount(acc, tenant, string(entities.LiveChatOctopush))
+	account, err := l.GetAccount(acc, tenant, string(entities.WhatsAppSocio))
 	if err != nil {
 		return nil, err
 	}

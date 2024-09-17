@@ -72,7 +72,7 @@ type AttributeDTO struct {
 	ChannelPlatform    entities.ChannelPlatform `json:"channel_platform" validate:"required,oneof=socioconnect maytapi octopushchat official"`
 	ChannelSources     entities.ChannelSources  `json:"channel_sources" validate:"required,oneof=whatsapp fbmessenger livechat telegram"`
 	ChannelId          entities.ChannelId       `json:"channel_id" validate:"required,oneof=12 3 7 5"`
-	DateTimestamp      string                   `json:"date_timestamp" validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
+	DateTimestamp      string                   `json:"date_timestamp" validate:"required"`
 	MiddlewareEndpoint string                   `json:"middleware_endpoint" validate:"required,url"`
 	CustName           string                   `json:"cust_name" validate:"required"`
 	StreamId           string                   `json:"stream_id,omitempty" validate:"omitempty"`
