@@ -211,7 +211,8 @@ func (l *WhatsappService) processOutgoingLivechatBotpress(msg *webhookWhatsapp.I
 				Type:             "TEXT",
 				Text:             Text{Body: text},
 			}
-			response, err = l.libsService.Text(additional.AccountId, additional.TenantId, payload)
+			fmt.Println("x", payload)
+			// response, err = l.libsService.Text(additional.AccountId, additional.TenantId, payload)
 			if err != nil {
 				return fmt.Errorf("failed to send text message: %v", err)
 			}
@@ -220,6 +221,7 @@ func (l *WhatsappService) processOutgoingLivechatBotpress(msg *webhookWhatsapp.I
 			if !ok {
 				return fmt.Errorf("invalid type for isDropdown field")
 			}
+
 			if !isDropdown {
 				payload := OutgoingButtonSocioconnect{
 					RecipientType:    "INDIVIDUAL",
@@ -234,7 +236,12 @@ func (l *WhatsappService) processOutgoingLivechatBotpress(msg *webhookWhatsapp.I
 						},
 					},
 				}
+				fmt.Println("payload", payload)
+
 				response, err = l.libsService.Button(additional.AccountId, additional.TenantId, payload)
+				if err != nil {
+					return fmt.Errorf("error di bukan dropdown")
+				}
 			} else {
 				// Ensure outgoingMap["choices"] is not nil and is of the correct type
 				choices, ok := outgoingMap["choices"].([]botpress.Choice)
@@ -257,6 +264,9 @@ func (l *WhatsappService) processOutgoingLivechatBotpress(msg *webhookWhatsapp.I
 					},
 				}
 				response, err = l.libsService.Button(additional.AccountId, additional.TenantId, payload)
+				if err != nil {
+					return fmt.Errorf("error di dropdown")
+				}
 			}
 		case "carousel":
 			outgoingStruct := outgoing.(map[string]interface{})
