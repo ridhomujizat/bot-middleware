@@ -7,6 +7,7 @@ import (
 	"bot-middleware/internal/pkg/util"
 	"bot-middleware/internal/webhook"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"gorm.io/gorm"
@@ -39,12 +40,12 @@ func (l *LibsService) Text(acc, tenant string, payload interface{}) (interface{}
 
 	payloadData, err := json.Marshal(payload)
 	if err != nil {
-		return nil, util.HandleAppError(err, "Lib Text", "JSON Marshal", true)
+		util.HandleAppError(err, "Lib Text", "JSON Marshal", true)
+		return nil, err
 	}
-	res, _, errResponse := util.HttpPost(account.BaseURL, payloadData, map[string]string{
+	res, StatusCode, errResponse := util.HttpPost(account.BaseURL, payloadData, map[string]string{
 		"Content-Type": "application/json",
 		"x-key":        account.Token,
-		"account_id":   acc,
 	})
 	if errResponse != nil {
 		return nil, errResponse
@@ -53,7 +54,12 @@ func (l *LibsService) Text(acc, tenant string, payload interface{}) (interface{}
 	var result interface{}
 	err = json.Unmarshal([]byte(res), &result)
 	if err != nil {
-		return nil, util.HandleAppError(err, "Lib Text", "JSON Unmarshal", true)
+		util.HandleAppError(err, "Lib Text", "JSON Unmarshal", true)
+		return nil, err
+	}
+
+	if StatusCode != 200 {
+		return nil, fmt.Errorf("error response: %s", res)
 	}
 
 	return result, nil

@@ -121,16 +121,16 @@ func (t *TelegramService) processBotOfficial(body []byte) error {
 	additional := msg.Additional
 	switch additional.BotPlatform {
 	case entities.BOTPRESS:
-		botPayload, err := t.application.BotService.Botpress.BPTLGOF(&msg)
-		if err != nil {
-			return err
-		}
-		if botPayload != nil {
-			if err := t.botpressProcess(msg, botPayload); err != nil {
-				util.HandleAppError(err, "initiateBot", "processBotOfficial Telegram", false)
-				return err
-			}
-		}
+		// botPayload, err := t.application.BotService.Botpress.BPTLGOF(&msg)
+		// if err != nil {
+		// 	return err
+		// }
+		// if botPayload != nil {
+		// 	if err := t.botpressProcess(msg, botPayload); err != nil {
+		// 		util.HandleAppError(err, "initiateBot", "processBotOfficial Telegram", false)
+		// 		return err
+		// 	}
+		// }
 	}
 	return nil
 }

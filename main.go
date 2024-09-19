@@ -15,12 +15,10 @@ import (
 	webhookFacebook "bot-middleware/internal/webhook/facebook"
 	webhookLivechat "bot-middleware/internal/webhook/livechat"
 	webhookWhatsapp "bot-middleware/internal/webhook/whatsapp"
+	workerWhatsapp "bot-middleware/internal/worker/whatsapp"
 	"log"
 
 	webhookTole "bot-middleware/internal/webhook/tole"
-	workerLivechat "bot-middleware/internal/worker/livechat"
-	workerTelegram "bot-middleware/internal/worker/telegram"
-	workerWhatsapp "bot-middleware/internal/worker/whatsapp"
 	"errors"
 	"fmt"
 
@@ -143,29 +141,8 @@ func initDB() (*application.Services, *libs.LibsService) {
 }
 
 func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationService *application.Services, libsService *libs.LibsService) {
-	telegramSubscriber := workerTelegram.NewTelegramService(messagingGeneral, applicationService)
-	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false, telegramSubscriber.Process)
-	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false, telegramSubscriber.InitiateBot)
-	telegramSubscriber.Subscribe("exchange", "routingKey", "onx:onx_dev:telegram:@BaruBelajarGolangBot:outgoing", false, telegramSubscriber.Outgoing)
-
-	// workerTelegram.NewTelegramIncoming(messagingGeneral, applicationService, "exchange", "incoming", "onx:onx_dev:telegram:@BaruBelajarGolangBot", false)
-	// workerTelegram.NewTelegramBotProcess(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:bot", false)
-	// workerTelegram.NewTelegramOutgoingHandler(messagingGeneral, applicationService, "exchange", "bot-process", "onx:onx_dev:telegram:@BaruBelajarGolangBot:outgoing", false)
-
-	livechatSubscriber := workerLivechat.NewLivechatService(messagingGeneral, applicationService, libsService)
-	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_INITIATE"), false, livechatSubscriber.Process)
-	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_BOT"), false, livechatSubscriber.InitiateBot)
-	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_OUTGOING"), false, livechatSubscriber.Outgoing)
-	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_END"), false, livechatSubscriber.End)
-	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_HANDOVER"), false, livechatSubscriber.Handover)
-	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_FINISH"), false, livechatSubscriber.Finish)
-	livechatSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_LIVECHAT_FORWARD"), false, livechatSubscriber.Forward)
-
 	whatappSubscriber := workerWhatsapp.NewWhatsappService(messagingGeneral, applicationService, libsService)
 	whatappSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_WHATSAPP_INITIATE"), false, whatappSubscriber.Process)
-	whatappSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_WHATSAPP_BOT"), false, whatappSubscriber.InitiateBot)
-	whatappSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_WHATSAPP_OUTGOING"), false, whatappSubscriber.Outgoing)
-	whatappSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_WHATSAPP_END"), false, whatappSubscriber.End)
-	whatappSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_WHATSAPP_FINISH"), false, whatappSubscriber.Finish)
-
+	whatappSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_WHATSAPP_BOT"), false, whatappSubscriber.ProcessBot)
+	whatappSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_WHATSAPP_OUTGOING"), false, whatappSubscriber.ProcessOutgoing)
 }

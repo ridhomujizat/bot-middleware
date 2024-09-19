@@ -3,11 +3,7 @@ package botpress
 import (
 	appAccount "bot-middleware/internal/application/account"
 	"bot-middleware/internal/pkg/util"
-	webhookLivechat "bot-middleware/internal/webhook/livechat"
-	webhookTelegram "bot-middleware/internal/webhook/telegram"
-	webhookWhatsapp "bot-middleware/internal/webhook/whatsapp"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -30,17 +26,22 @@ type loginPayload struct {
 	Password string `json:"password"`
 }
 
-func (a *BotpressService) Login(botAccount, tenantId string) (*LoginRespon, error) {
+func (a *BotpressService) Login(botAccount, tenantId string, refreshToken *bool) (*LoginRespon, error) {
 	account, err := a.accountService.GetAccount(botAccount, tenantId)
 	if err != nil {
 		return nil, err
+	}
+	// Set default value for refreshToken if it is nil
+	if refreshToken == nil {
+		defaultRefreshToken := false
+		refreshToken = &defaultRefreshToken
 	}
 
 	today := time.Now()
 	dayUpdate := account.UpdatedAt
 	diffDays := today.Sub(dayUpdate).Hours() / 24
 
-	if diffDays >= 1 || account.Token == "" {
+	if diffDays >= 1 || account.Token == "" || *refreshToken {
 		payloadLogin := loginPayload{
 			Email:    account.Username,
 			Password: account.Password,
@@ -53,6 +54,7 @@ func (a *BotpressService) Login(botAccount, tenantId string) (*LoginRespon, erro
 		respon, errCode, errResponse := util.HttpPost(account.AuthURL, jsonData, map[string]string{
 			"Content-Type": "application/json",
 		})
+
 		if errResponse != nil {
 			util.HandleAppError(errResponse, "HttpPost", "Login", false)
 			return nil, errResponse
@@ -64,6 +66,7 @@ func (a *BotpressService) Login(botAccount, tenantId string) (*LoginRespon, erro
 
 		var loginResponse LoginBotPressDTO
 		errDecode := json.Unmarshal([]byte(respon), &loginResponse)
+
 		if errDecode != nil {
 			return nil, util.HandleAppError(err, "Botpress Login", "JSON Unmarshal", true)
 		}
@@ -84,7 +87,7 @@ func (a *BotpressService) Login(botAccount, tenantId string) (*LoginRespon, erro
 	}
 }
 
-func (a *BotpressService) AskBotpress(uniqueId string, token string, baseURL string, botP *AskPayloadBotpresDTO) (*BotpressRespon, error) {
+func (a *BotpressService) AskBotpress(uniqueId string, token string, baseURL string, botP *AskPayloadBotpresDTO, RefreshToken *RefreshToken) (*BotpressRespon, error) {
 	url := fmt.Sprintf("%s/converse/%s/secured?include=state,suggestions,decision,nlu", baseURL, uniqueId)
 
 	jsonData, err := json.Marshal(botP)
@@ -106,6 +109,15 @@ func (a *BotpressService) AskBotpress(uniqueId string, token string, baseURL str
 	// fmt.Println("Response Body:", body)
 	pterm.Info.Printfln("Received a message %s: %s", strconv.Itoa(statusCode), body)
 
+	if statusCode >= 400 {
+		// refresh token
+		if statusCode == 401 {
+			refreshToken := true
+			a.Login(RefreshToken.BotAccount, RefreshToken.TenantId, &refreshToken)
+		}
+		return nil, fmt.Errorf("error code: %d, with response: %s", statusCode, body)
+	}
+
 	responBotpress, err := UnmarshalBotpressRespon([]byte(body))
 	if err != nil {
 		return nil, util.HandleAppError(err, "AskBotpress", "JSON Unmarshal", true)
@@ -114,82 +126,82 @@ func (a *BotpressService) AskBotpress(uniqueId string, token string, baseURL str
 	return &responBotpress, nil
 }
 
-func (a *BotpressService) BPLCOC(payload webhookLivechat.IncomingDTO) (*AskPayloadBotpresDTO, error) {
-	var botPayload AskPayloadBotpresDTO
-	switch payload.Action {
-	case "clientReplyText":
-		botPayload.Type = BotpressMessageType(TEXT)
-		botPayload.Text = payload.Message
-		botPayload.Metadata = payload.Additional
-	case "clientReplyButton":
-		botPayload.Type = BotpressMessageType(SINGLE_CHOICE)
-		botPayload.Text = payload.Message
-		botPayload.Metadata = payload.Additional
-	case "clientReplyCarousel":
-		botPayload.Type = BotpressMessageType(POSTBACK)
-		botPayload.Payload = payload.Message
-		botPayload.Metadata = payload.Additional
-	default:
-		return nil, fmt.Errorf("unsupported action: %s", payload.Action)
-	}
-	return &botPayload, nil
-}
+// func (a *BotpressService) BPLCOC(payload webhookLivechat.IncomingDTO) (*AskPayloadBotpresDTO, error) {
+// 	var botPayload AskPayloadBotpresDTO
+// 	switch payload.Action {
+// 	case "clientReplyText":
+// 		botPayload.Type = BotpressMessageType(TEXT)
+// 		botPayload.Text = payload.Message
+// 		botPayload.Metadata = payload.Additional
+// 	case "clientReplyButton":
+// 		botPayload.Type = BotpressMessageType(SINGLE_CHOICE)
+// 		botPayload.Text = payload.Message
+// 		botPayload.Metadata = payload.Additional
+// 	case "clientReplyCarousel":
+// 		botPayload.Type = BotpressMessageType(POSTBACK)
+// 		botPayload.Payload = payload.Message
+// 		botPayload.Metadata = payload.Additional
+// 	default:
+// 		return nil, fmt.Errorf("unsupported action: %s", payload.Action)
+// 	}
+// 	return &botPayload, nil
+// }
 
-func (a *BotpressService) BPTLGOF(payload *webhookTelegram.IncomingDTO) (*AskPayloadBotpresDTO, error) {
-	if payload == nil {
-		return nil, errors.New("payload is nil")
-	}
+// func (a *BotpressService) BPTLGOF(payload *webhookTelegram.IncomingDTO) (*AskPayloadBotpresDTO, error) {
+// 	if payload == nil {
+// 		return nil, errors.New("payload is nil")
+// 	}
 
-	var botPayload AskPayloadBotpresDTO
+// 	var botPayload AskPayloadBotpresDTO
 
-	if payload.Message != nil {
-		botPayload.Type = TEXT
-		botPayload.Text = payload.Message.Text
-		botPayload.Metadata = *payload.Additional
-		return &botPayload, nil
-	} else if payload.CallbackQuery != nil {
-		botPayload.Type = POSTBACK
-		botPayload.Text = payload.CallbackQuery.Data
-		botPayload.Payload = payload.CallbackQuery.Data
-		botPayload.Metadata = *payload.Additional
-		return &botPayload, nil
-	}
+// 	if payload.Message != nil {
+// 		botPayload.Type = TEXT
+// 		botPayload.Text = payload.Message.Text
+// 		botPayload.Metadata = *payload.Additional
+// 		return &botPayload, nil
+// 	} else if payload.CallbackQuery != nil {
+// 		botPayload.Type = POSTBACK
+// 		botPayload.Text = payload.CallbackQuery.Data
+// 		botPayload.Payload = payload.CallbackQuery.Data
+// 		botPayload.Metadata = *payload.Additional
+// 		return &botPayload, nil
+// 	}
 
-	return nil, errors.New("no valid message or callback query found in payload")
-}
+// 	return nil, errors.New("no valid message or callback query found in payload")
+// }
 
-func (a *BotpressService) BPWASC(payload webhookWhatsapp.IncomingDTO) (*AskPayloadBotpresDTO, error) {
-	var botPayload AskPayloadBotpresDTO
+// func (a *BotpressService) BPWASC(payload webhookWhatsapp.IncomingDTO) (*AskPayloadBotpresDTO, error) {
+// 	var botPayload AskPayloadBotpresDTO
 
-	switch payload.Messages[0].Type {
-	case "text":
-		botPayload.Type = BotpressMessageType(TEXT)
-		botPayload.Text = payload.Messages[0].Text.Body
-		botPayload.Metadata = payload.Additional
-		botPayload.Metadata.CustMessage = botPayload.Text
+// 	switch payload.Messages[0].Type {
+// 	case "text":
+// 		botPayload.Type = BotpressMessageType(TEXT)
+// 		botPayload.Text = payload.Messages[0].Text.Body
+// 		botPayload.Metadata = payload.Additional
+// 		botPayload.Metadata.CustMessage = botPayload.Text
 
-	case "interactive":
-		switch payload.Messages[0].Interactive.Type {
-		case "list_reply":
-			botPayload.Type = BotpressMessageType(SINGLE_CHOICE)
-			botPayload.Text = payload.Messages[0].Interactive.List_reply.Id
-			botPayload.Metadata = payload.Additional
-			botPayload.Metadata.CustMessage = botPayload.Text
-		case "button_reply":
-			botPayload.Type = BotpressMessageType(SINGLE_CHOICE)
-			botPayload.Text = payload.Messages[0].Interactive.Button_reply.Id
-			botPayload.Metadata = payload.Additional
-			botPayload.Metadata.CustMessage = botPayload.Text
-		default:
-			return nil, fmt.Errorf("unsupported interactive type: %s", payload.Messages[0].Interactive.Type)
-		}
+// 	case "interactive":
+// 		switch payload.Messages[0].Interactive.Type {
+// 		case "list_reply":
+// 			botPayload.Type = BotpressMessageType(SINGLE_CHOICE)
+// 			botPayload.Text = payload.Messages[0].Interactive.List_reply.Id
+// 			botPayload.Metadata = payload.Additional
+// 			botPayload.Metadata.CustMessage = botPayload.Text
+// 		case "button_reply":
+// 			botPayload.Type = BotpressMessageType(SINGLE_CHOICE)
+// 			botPayload.Text = payload.Messages[0].Interactive.Button_reply.Id
+// 			botPayload.Metadata = payload.Additional
+// 			botPayload.Metadata.CustMessage = botPayload.Text
+// 		default:
+// 			return nil, fmt.Errorf("unsupported interactive type: %s", payload.Messages[0].Interactive.Type)
+// 		}
 
-	default:
-		return nil, fmt.Errorf("unsupported action: %s", payload.Messages[0].Type)
-	}
-	return &botPayload, nil
+// 	default:
+// 		return nil, fmt.Errorf("unsupported action: %s", payload.Messages[0].Type)
+// 	}
+// 	return &botPayload, nil
 
-}
+// }
 
 // func (a *BotpressService) ParsingPayloadTelegram(payload webhookTelegram.IncomingDTO) (*AskPayloadBotpresDTO, error) {
 // 	var botPayload AskPayloadBotpresDTO

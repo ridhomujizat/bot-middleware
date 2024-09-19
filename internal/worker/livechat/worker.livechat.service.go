@@ -111,13 +111,13 @@ func (l *LivechatService) processBotOctopushchat(msg *webhookLivechat.IncomingDT
 	additional := msg.Additional
 	switch additional.BotPlatform {
 	case entities.BOTPRESS:
-		botPayload, err := l.application.BotService.Botpress.BPLCOC(*msg)
-		if err != nil {
-			return err
-		}
-		if botPayload != nil {
-			return l.processBotpress(msg, botPayload)
-		}
+		// botPayload, err := l.application.BotService.Botpress.BPLCOC(*msg)
+		// if err != nil {
+		// 	return err
+		// }
+		// if botPayload != nil {
+		// 	return l.processBotpress(msg, botPayload)
+		// }
 	}
 	return nil
 }

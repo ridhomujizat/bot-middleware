@@ -3,18 +3,15 @@ package workerWhatsapp
 import (
 	"bot-middleware/internal/application"
 	"bot-middleware/internal/application/bot/botpress"
-	appSession "bot-middleware/internal/application/session"
 	"bot-middleware/internal/entities"
 	"bot-middleware/internal/pkg/libs"
 	"bot-middleware/internal/pkg/messaging"
 	"bot-middleware/internal/pkg/util"
-	"bot-middleware/internal/webhook"
-	webhookWhatsapp "bot-middleware/internal/webhook/whatsapp"
+	"bot-middleware/internal/worker"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
-
-	"github.com/pterm/pterm"
 )
 
 type WhatsappService struct {
@@ -40,270 +37,246 @@ func (l *WhatsappService) Subscribe(exchange, routingKey, queueName string, allo
 }
 
 func (l *WhatsappService) Process(body []byte) error {
-	var msg webhookWhatsapp.IncomingDTO
+	var msg IncomingDTO
+
 	if err := json.Unmarshal(body, &msg); err != nil {
-		return util.HandleAppError(err, "Livechat process", "Unmarshal", true)
+		return util.HandleAppError(err, "Unmarshal process", "Unmarshal", true)
 	}
 
-	session, err := l.application.SessionService.FindSession(msg.Additional.UniqueId, string(msg.Additional.ChannelPlatform), string(msg.Additional.ChannelSources), msg.Additional.TenantId)
-	if err != nil {
-		util.HandleAppError(err, "Whatsapp process", "FindSession", false)
-		return err
-	}
-
-	pterm.Info.Println("session", session)
-
-	if session == nil {
-		return l.handleNewSession(&msg)
-	} else {
-		return l.handleExistingSession(&msg, session)
-	}
-}
-
-func (l *WhatsappService) handleNewSession(msg *webhookWhatsapp.IncomingDTO) error {
 	result, err := l.application.BotService.GetAndUpdateBotServer()
 	if err != nil {
 		util.HandleAppError(err, "Livechat process", "GetAndUpdateBotServer", false)
 		return err
 	}
 
-	msg.Additional.BotEndpoint = result.ServerAddress
-	msg.Additional.BotAccount = result.ServerAccount
-	sid, err := util.GenerateId()
+	session, err := l.application.SessionService.InitAndCheckSession(msg.AccountId, string(entities.SOCIOCONNECT), string(entities.WHATSAPP), msg.TenantId)
 	if err != nil {
-		util.HandleAppError(err, "Livechat process", "GenerateId", false)
+		util.HandleAppError(err, "Whatsapp process", "FindSession", false)
 		return err
 	}
 
-	msg.Additional.Sid = sid
-	msg.Additional.NewSession = true
-	pterm.Info.Printfln("msg => %+v", msg)
-	queueName := fmt.Sprintf("%s:%s:%s:%s:bot", msg.Additional.Omnichannel, msg.Additional.TenantId, util.GodotEnv("WHATSAPP_QUEUE_NAME"), msg.Additional.AccountId)
-	return l.messagingGeneral.Publish(queueName, *msg)
-}
-
-func (l *WhatsappService) handleExistingSession(msg *webhookWhatsapp.IncomingDTO, session *appSession.Session) error {
-	msg.Additional.BotEndpoint = session.BotURL
-	msg.Additional.BotAccount = session.BotAccount
-	msg.Additional.Sid = session.Sid
-	msg.Additional.NewSession = false
-	if session.State == "handover" {
-		queueName := fmt.Sprintf("%s:%s:%s:%s:handover", msg.Additional.Omnichannel, msg.Additional.TenantId, util.GodotEnv("WHATSAPP_QUEUE_NAME"), msg.Additional.AccountId)
-		return l.messagingGeneral.Publish(queueName, *msg)
+	payload := PayloadDTO{
+		Incoming: msg,
+		MetaData: worker.MetaData{
+			BotEndpoint:     result.ServerAddress,
+			BotAccount:      result.ServerAccount,
+			AccountId:       msg.AccountId,
+			UniqueId:        msg.Contacts[0].WaId,
+			ChannelPlatform: entities.SOCIOCONNECT,
+			ChannelSources:  entities.WHATSAPP,
+			ChannelId:       entities.WHATSAPP_ID,
+			DateTimestamp:   msg.Messages[0].Timestamp,
+			Sid:             session.Sid,
+			NewSession:      session.NewSession,
+		},
 	}
-	queueName := fmt.Sprintf("%s:%s:%s:%s:bot", msg.Additional.Omnichannel, msg.Additional.TenantId, util.GodotEnv("WHATSAPP_QUEUE_NAME"), msg.Additional.AccountId)
-	return l.messagingGeneral.Publish(queueName, *msg)
+
+	queueName := fmt.Sprintf("%s:%s:%s:bot", msg.TenantId, util.GodotEnv("WHATSAPP_QUEUE_NAME"), msg.AccountId)
+	return l.messagingGeneral.Publish(queueName, payload)
+
 }
 
-func (l *WhatsappService) InitiateBot(body []byte) error {
-	var msg webhookWhatsapp.IncomingDTO
-	if err := json.Unmarshal(body, &msg); err != nil {
+func (l *WhatsappService) ProcessBot(body []byte) error {
+	var payload PayloadDTO
+
+	if err := json.Unmarshal(body, &payload); err != nil {
 		util.HandleAppError(err, "initiateBot", "Unmarshal", false)
 		return err
 	}
 
-	if err := l.processBotOctopushchat(&msg); err != nil {
-		util.HandleAppError(err, "initiateBot", "processBotOctopushchat", false)
+	botPayload, err := l.ParsingIncoming(*&payload)
+	if err != nil {
 		return err
 	}
-
-	return nil
-}
-
-func (l *WhatsappService) processBotOctopushchat(msg *webhookWhatsapp.IncomingDTO) error {
-	additional := msg.Additional
-	switch additional.BotPlatform {
-	case entities.BOTPRESS:
-		botPayload, err := l.application.BotService.Botpress.BPWASC(*msg)
-		if err != nil {
-			return err
-		}
-		if botPayload != nil {
-			return l.processBotpress(msg, botPayload)
-		}
-	}
-	return nil
-}
-
-func (l *WhatsappService) processBotpress(msg *webhookWhatsapp.IncomingDTO, botPayload *botpress.AskPayloadBotpresDTO) error {
-	additional := msg.Additional
-
-	loginResult, err := l.application.BotService.Botpress.Login(additional.BotAccount, additional.TenantId)
+	refreshToken := false
+	loginResult, err := l.application.BotService.Botpress.Login(payload.MetaData.BotAccount, payload.Incoming.TenantId, &refreshToken)
 	if err != nil {
 		util.HandleAppError(err, "processBotpress", "Login", false)
 		return err
 	}
 
-	result, err := l.application.BotService.Botpress.AskBotpress(additional.UniqueId, loginResult.Token, loginResult.BaseURL, botPayload)
+	result, err := l.application.BotService.Botpress.AskBotpress(payload.MetaData.UniqueId, loginResult.Token, loginResult.BaseURL, botPayload, &botpress.RefreshToken{
+		BotAccount: payload.MetaData.BotAccount,
+		TenantId:   payload.Incoming.TenantId,
+	})
 	if err != nil {
 		util.HandleAppError(err, "processBotpress", "AskBotpress", false)
 		return err
 	}
 
-	msg.BotResponse = map[string]interface{}{
-		"responses":  result.Responses,
-		"state":      result.State.Context.CurrentNode,
-		"stacktrace": result.State.Stacktrace,
-		"bot_date":   time.Now().Format("2006-01-02 15:04:05"),
+	payload.BotResponse = botpress.AnswarPayloadBotpresDTO{
+		Responses:  result.Responses,
+		State:      result.State.Context.CurrentNode,
+		Stacktrace: result.State.Stacktrace,
+		BotDate:    time.Now().Format("2006-01-02 15:04:05"),
 	}
 
-	queueName := fmt.Sprintf("%s:%s:%s:%s:outgoing", msg.Additional.Omnichannel, msg.Additional.TenantId, util.GodotEnv("WHATSAPP_QUEUE_NAME"), msg.Additional.AccountId)
-	return l.messagingGeneral.Publish(queueName, *msg)
+	queueName := fmt.Sprintf("%s:%s:%s:outgoing", payload.Incoming.TenantId, util.GodotEnv("WHATSAPP_QUEUE_NAME"), payload.MetaData.AccountId)
+	return l.messagingGeneral.Publish(queueName, payload)
+
 }
 
-func (l *WhatsappService) Outgoing(body []byte) error {
-	var msg webhookWhatsapp.IncomingDTO
-	if err := json.Unmarshal(body, &msg); err != nil {
-		return util.HandleAppError(err, "Livechat Outgoing", "JSON Unmarshal", true)
-	}
+func (a *WhatsappService) ParsingIncoming(payload PayloadDTO) (*botpress.AskPayloadBotpresDTO, error) {
+	var botPayload botpress.AskPayloadBotpresDTO
 
-	additional := msg.Additional
+	switch payload.Incoming.Messages[0].Type {
+	case "text":
+		botPayload.Type = botpress.BotpressMessageType(botpress.TEXT)
+		botPayload.Text = payload.Incoming.Messages[0].Text.Body
+		botPayload.Metadata = payload.MetaData
+		botPayload.Metadata.CustMessage = botPayload.Text
 
-	switch additional.BotPlatform {
-	case entities.BOTPRESS:
-		switch additional.ChannelPlatform {
-		case entities.SOCIOCONNECT:
-			return l.processOutgoingLivechatBotpress(&msg)
+	case "interactive":
+		switch payload.Incoming.Messages[0].Interactive.Type {
+		case "list_reply":
+			botPayload.Type = botpress.BotpressMessageType(botpress.SINGLE_CHOICE)
+			botPayload.Text = payload.Incoming.Messages[0].Interactive.List_reply.Id
+			botPayload.Metadata = payload.MetaData
+			botPayload.Metadata.CustMessage = botPayload.Text
+		case "button_reply":
+			botPayload.Type = botpress.BotpressMessageType(botpress.SINGLE_CHOICE)
+			botPayload.Text = payload.Incoming.Messages[0].Interactive.Button_reply.Id
+			botPayload.Metadata = payload.MetaData
+			botPayload.Metadata.CustMessage = botPayload.Text
+		default:
+			return nil, fmt.Errorf("unsupported interactive type: %s", payload.Incoming.Messages[0].Interactive.Type)
 		}
-	}
 
-	return nil
+	default:
+		return nil, fmt.Errorf("unsupported action: %s", payload.Incoming.Messages[0].Type)
+	}
+	return &botPayload, nil
+
 }
 
-func (l *WhatsappService) processOutgoingLivechatBotpress(msg *webhookWhatsapp.IncomingDTO) error {
-	additional := msg.Additional
-	botResponse := msg.BotResponse
-
-	msg.OutgoingResponse = make([]interface{}, 0)
-
-	responses, ok := botResponse.(map[string]interface{})["responses"].([]interface{})
-	if !ok || responses == nil {
-		return fmt.Errorf("invalid type or nil for responses field")
+func (l *WhatsappService) ProcessOutgoing(body []byte) error {
+	var payload PayloadDTO
+	if err := json.Unmarshal(body, &payload); err != nil {
+		util.HandleAppError(err, "initiateBot", "Unmarshal", false)
+		return err
 	}
+	MetaData := payload.MetaData
+	botResponse := payload.BotResponse
 
-	for _, outgoing := range botResponse.(map[string]interface{})["responses"].([]interface{}) {
+	payload.OutgoingResponse = make([]interface{}, 0)
+
+	for _, outgoing := range botResponse.Responses {
+		outPayload := OutgoingText{
+			RecipientType:    "INDIVIDUAL",
+			MessagingProduct: "WHATSAPP",
+			To:               "6285156824825",
+			Type:             "TEXT",
+			Text:             Text{Body: "Hello, this is a test message"},
+		}
+		l.libsService.Text(MetaData.AccountId, payload.Incoming.TenantId, outPayload)
 		var response interface{}
 		var err error
-		outgoingMap, ok := outgoing.(map[string]interface{})
-		if !ok {
-			return fmt.Errorf("invalid type for outgoing response")
-		}
+		result := make(map[string]interface{})
 
-		// Assert the type field to string
-		responseType, ok := outgoingMap["type"].(string)
-		if !ok {
-			return fmt.Errorf("invalid type for response type")
-		}
-
-		var result map[string]interface{}
-
-		switch responseType {
-		case "text":
-			// Assert the text field to string
-			text, ok := outgoingMap["text"].(string)
-			if !ok {
-				return fmt.Errorf("invalid type for text field")
-			}
-			payload := OutgoingTextSocioconnect{
+		switch outgoing.Type {
+		case string(botpress.TEXT):
+			outPayload := OutgoingText{
 				RecipientType:    "INDIVIDUAL",
 				MessagingProduct: "WHATSAPP",
-				To:               additional.UniqueId,
+				To:               MetaData.UniqueId,
 				Type:             "TEXT",
-				Text:             Text{Body: text},
+				Text:             Text{Body: outgoing.Text},
 			}
-			fmt.Println("x", payload)
-			// response, err = l.libsService.Text(additional.AccountId, additional.TenantId, payload)
+			response, err = l.libsService.Text(MetaData.AccountId, payload.Incoming.TenantId, outPayload)
 			if err != nil {
 				return fmt.Errorf("failed to send text message: %v", err)
 			}
-		case "single-choice":
-			isDropdown, ok := outgoingMap["isDropdown"].(bool)
-			if !ok {
-				return fmt.Errorf("invalid type for isDropdown field")
-			}
+			result["payload"] = outPayload
+			result["response"] = response
+			result["sent_date"] = time.Now().Format("2006-01-02 15:04:05")
+		case string(botpress.SINGLE_CHOICE):
 
-			if !isDropdown {
-				payload := OutgoingButtonSocioconnect{
+			if !outgoing.IsDropdown {
+				outPayload := OutgoingButton{
 					RecipientType:    "INDIVIDUAL",
 					MessagingProduct: "WHATSAPP",
-					To:               additional.UniqueId,
+					To:               MetaData.UniqueId,
 					Type:             "INTERACTIVE",
 					Interactive: Interactive{
-						Type: "BUTTON",
-						Body: Body{Text: outgoingMap["text"].(string)},
+						Type: "button",
+						Body: Body{Text: outgoing.Text},
 						Action: Action{
-							Buttons: mapChoicesToButtons(outgoingMap["choices"].([]botpress.Choice)),
+							Buttons: mapChoicesToButtons(outgoing.Choices),
 						},
 					},
 				}
-				fmt.Println("payload", payload)
-
-				response, err = l.libsService.Button(additional.AccountId, additional.TenantId, payload)
+				response, err = l.libsService.Text(MetaData.AccountId, payload.Incoming.TenantId, outPayload)
 				if err != nil {
-					return fmt.Errorf("error di bukan dropdown")
+					return fmt.Errorf("failed to send button message: %v", err)
 				}
+				result["payload"] = outPayload
+				result["response"] = response
+				result["sent_date"] = time.Now().Format("2006-01-02 15:04:05")
 			} else {
-				// Ensure outgoingMap["choices"] is not nil and is of the correct type
-				choices, ok := outgoingMap["choices"].([]botpress.Choice)
-				if !ok {
-					return fmt.Errorf("invalid type or nil for choices field")
-				}
+				Button := outgoing.DropdownPlaceholder
 
-				payload := OutgoingListSocioconnect{
+				if Button == "" {
+					Button = "Select an option"
+				}
+				outPayload := OutgoingList{
 					RecipientType:    "INDIVIDUAL",
 					MessagingProduct: "WHATSAPP",
-					To:               additional.UniqueId,
+					To:               MetaData.UniqueId,
 					Type:             "INTERACTIVE",
 					Interactive: Interactive{
-						Type: "LIST",
-						Body: Body{Text: outgoingMap["text"].(string)},
+						Type: "list",
+						Body: Body{Text: outgoing.Text},
 						Action: Action{
-							Button:   outgoingMap["text"].(string),
-							Sections: mapChoicesToSections(choices),
+							Button: Button,
+							Sections: []Section{{
+								Title: Button,
+								Rows:  mapChoicesToSections(outgoing.Choices)}},
 						},
 					},
 				}
-				response, err = l.libsService.Button(additional.AccountId, additional.TenantId, payload)
+				response, err = l.libsService.Text(MetaData.AccountId, payload.Incoming.TenantId, outPayload)
 				if err != nil {
-					return fmt.Errorf("error di dropdown")
+					return fmt.Errorf("failed to send button message: %v", err)
 				}
+				result["payload"] = outPayload
+				result["response"] = response
+				result["sent_date"] = time.Now().Format("2006-01-02 15:04:05")
 			}
-		case "carousel":
-			outgoingStruct := outgoing.(map[string]interface{})
-			payload := OutgoingButtonSocioconnect{
+		case string(botpress.CAROUSEL):
+			Button := outgoing.DropdownPlaceholder
+
+			if Button == "" {
+				Button = "Select an option"
+			}
+			outPayload := OutgoingCarousel{
 				RecipientType:    "INDIVIDUAL",
 				MessagingProduct: "WHATSAPP",
-				To:               additional.UniqueId,
+				To:               MetaData.UniqueId,
 				Type:             "INTERACTIVE",
 				Interactive: Interactive{
-					Type: "BUTTON",
-					Header: Header{
-						Type:  "IMAGE",
-						Image: Image{Link: outgoingStruct["items"].([]botpress.Carousel)[0].Image},
-					},
-					Body: Body{Text: outgoingStruct["items"].([]botpress.Carousel)[0].SubTitle},
+					Type: "carousel",
+					Body: Body{Text: outgoing.Text},
 					Action: Action{
-						Buttons: mapActionsToButtons(outgoingStruct["items"].([]botpress.Carousel)),
+						Button:  Button,
+						Buttons: mapChoicesToButtons(outgoing.Choices),
 					},
 				},
 			}
-			response, err = l.libsService.Button(additional.AccountId, additional.TenantId, payload)
+			response, err = l.libsService.Text(MetaData.AccountId, payload.Incoming.TenantId, outPayload)
+			if err != nil {
+				return fmt.Errorf("failed to send button message: %v", err)
+			}
+
+			result["payload"] = outPayload
+			result["response"] = response
+			result["sent_date"] = time.Now().Format("2006-01-02 15:04:05")
 
 		}
-		if err != nil {
-			return err
-		}
 
-		// Initialize the result map
-		result = make(map[string]interface{})
-
-		result["response"] = response
-		result["sent_date"] = time.Now().Format("2006-01-02 15:04:05")
-
-		msg.OutgoingResponse = append(msg.OutgoingResponse, result)
+		payload.OutgoingResponse = append(payload.OutgoingResponse, result)
 	}
-
-	return nil
+	queueName := fmt.Sprintf("%s:%s:%s:finish", payload.Incoming.TenantId, util.GodotEnv("WHATSAPP_QUEUE_NAME"), payload.MetaData.AccountId)
+	return l.messagingGeneral.Publish(queueName, payload)
 }
 
 func mapChoicesToButtons(choices []botpress.Choice) []Button {
@@ -314,98 +287,19 @@ func mapChoicesToButtons(choices []botpress.Choice) []Button {
 	return buttons
 }
 
-func mapChoicesToSections(choices []botpress.Choice) []Section {
-	var sections []Section
+func mapChoicesToSections(choices []botpress.Choice) []Rows {
+	var sections []Rows
 	for _, c := range choices {
-		sections = append(sections, Section{Title: c.Title, Description: c.Title, ID: c.Value})
+		parts := strings.Split(c.Title, "|")
+		title := strings.TrimSpace(parts[0])
+		description := ""
+		if len(parts) > 1 {
+			description = strings.TrimSpace(parts[1])
+			if len(description) > 71 {
+				description = description[:71]
+			}
+		}
+		sections = append(sections, Rows{Title: title, Description: description, ID: c.Value})
 	}
 	return sections
-}
-
-func mapActionsToButtons(actions []botpress.Carousel) []Button {
-	var buttons []Button
-	for _, a := range actions {
-		buttons = append(buttons, Button{Type: "reply", Reply: Reply{Title: a.Title, ID: a.Actions[0].Payload}})
-	}
-	return buttons
-}
-
-func (l *WhatsappService) Finish(body []byte) error {
-	var msg webhookWhatsapp.IncomingDTO
-	if err := json.Unmarshal(body, &msg); err != nil {
-		return util.HandleAppError(err, "Livechat Finish", "JSON Unmarshal", true)
-
-	}
-
-	sess, err := l.libsService.FindSessionByUniqueId(msg.Additional.UniqueId, msg.Additional.TenantId)
-	if err != nil {
-		return err
-	}
-
-	incomingDate, err := time.Parse(time.RFC3339, msg.Additional.DateTimestamp)
-	if err != nil {
-		return util.HandleAppError(err, "Livechat Finish", "Timestamp Parse", true)
-	}
-
-	botDate, err := time.Parse(time.RFC3339, msg.BotResponse.(map[string]string)["bot_date"])
-	if err != nil {
-		return util.HandleAppError(err, "Livechat Finish", "BotDate Parse", true)
-	}
-
-	session := &appSession.Session{
-		Sid:              msg.Additional.Sid,
-		TenantId:         msg.Additional.TenantId,
-		UniqueId:         msg.Additional.UniqueId,
-		BotPlatform:      msg.Additional.BotPlatform,
-		State:            fmt.Sprintf("%v", msg.BotResponse.(map[string]interface{})["state"]),
-		Stacktrace:       util.JSONstringify(msg.BotResponse.(map[string]interface{})["stacktrace"]),
-		BotResponse:      util.JSONstringify(msg.BotResponse.(map[string]interface{})["responses"]),
-		BotURL:           msg.Additional.BotEndpoint,
-		ChannelSource:    msg.Additional.ChannelSources,
-		ChannelPlatform:  msg.Additional.ChannelPlatform,
-		ChannelId:        msg.Additional.ChannelId,
-		Omnichannel:      msg.Additional.Omnichannel,
-		BotDate:          botDate,
-		OutgoingResponse: util.JSONstringify(msg.OutgoingResponse),
-		BotAccount:       msg.Additional.BotAccount,
-		ChannelAccount:   msg.Additional.AccountId,
-		IncomingDate:     incomingDate,
-	}
-
-	switch msg.Additional.ChannelPlatform {
-
-	case entities.SOCIOCONNECT:
-		session.CustMessage = msg.Additional.CustName
-		session.CustName = msg.Additional.CustName
-		session.CustMessageType = "TEXT"
-
-	}
-
-	if sess == nil {
-		if err := l.libsService.CreateSession(session); err != nil {
-			return err
-		}
-	} else {
-		session.Id = sess.Id
-		if err := l.libsService.UpdateSession(session); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (l *WhatsappService) End(body []byte) error {
-	var msg map[string]interface{}
-	if err := json.Unmarshal(body, &msg); err != nil {
-		return util.HandleAppError(err, "Livechat End", "JSON Unmarshal", true)
-	}
-
-	payload := msg["payload"].(webhook.EndDTO)
-	err := l.libsService.DeleteSessionByUniqueId(&payload)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

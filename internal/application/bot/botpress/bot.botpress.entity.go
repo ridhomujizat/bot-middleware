@@ -1,7 +1,7 @@
 package botpress
 
 import (
-	"bot-middleware/internal/webhook"
+	"bot-middleware/internal/worker"
 	"encoding/json"
 	"time"
 )
@@ -16,10 +16,22 @@ const (
 )
 
 type AskPayloadBotpresDTO struct {
-	Type     BotpressMessageType  `json:"type"`
-	Text     string               `json:"text"`
-	Metadata webhook.AttributeDTO `json:"metadata"`
-	Payload  string               `json:"payload"`
+	Type     BotpressMessageType `json:"type"`
+	Text     string              `json:"text"`
+	Metadata worker.MetaData     `json:"metadata"`
+	Payload  string              `json:"payload"`
+}
+
+type RefreshToken struct {
+	BotAccount string `json:"botAccount"`
+	TenantId   string `json:"tenantId"`
+}
+
+type AnswarPayloadBotpresDTO struct {
+	Responses  []Response   `json:"responses"`
+	State      string       `json:"state"`
+	Stacktrace []Stacktrace `json:"stacktrace"`
+	BotDate    string       `json:"botDate"`
 }
 
 type LoginPayload struct {
@@ -102,7 +114,7 @@ type Response struct {
 	Skill               string     `json:"skill"`
 	Workflow            Slots      `json:"workflow"`
 	Text                string     `json:"text"`
-	IsDropdown          bool       `json:"isDropdown"`
+	IsDropdown          bool       `json:"isDropdown" validate:"omitempty"`
 	DropdownPlaceholder string     `json:"dropdownPlaceholder"`
 	Choices             []Choice   `json:"choices"`
 	Items               []Carousel `json:"items"`
