@@ -42,7 +42,7 @@ func (l *WhatsappService) Process(body []byte) error {
 	var msg IncomingDTO
 
 	if err := json.Unmarshal(body, &msg); err != nil {
-		return util.HandleAppError(err, "Unmarshal process", "Unmarshal", true)
+		return util.HandleAppError(err, "Unmarshal process", "Unmarshal", false)
 	}
 
 	result, err := l.application.BotService.GetAndUpdateBotServer()
@@ -311,13 +311,13 @@ func (l *WhatsappService) ProcessFinish(body []byte) error {
 
 	sess, err := l.libsService.FindSessionByUniqueId(MetaData.UniqueId, Incoming.TenantId)
 	if err != nil {
-		util.HandleAppError(err, "WA  Finish", "Get Sess Parse", true)
+		util.HandleAppError(err, "WA  Finish", "Get Sess Parse", false)
 		return err
 	}
 
 	incomingTimestamp, err := strconv.ParseInt(MetaData.DateTimestamp, 10, 64)
 	if err != nil {
-		util.HandleAppError(err, "WA Finish", "Timestamp Parse", true)
+		util.HandleAppError(err, "WA Finish", "Timestamp Parse", false)
 		return err
 	}
 	incomingDate := time.Unix(incomingTimestamp, 0)
@@ -325,7 +325,7 @@ func (l *WhatsappService) ProcessFinish(body []byte) error {
 	// Parse BotResponse.BotDate with the correct layout
 	botDate, err := time.Parse("2006-01-02 15:04:05", BotResponse.BotDate)
 	if err != nil {
-		util.HandleAppError(err, "WA Finish", "BotDate Parse", true)
+		util.HandleAppError(err, "WA Finish", "BotDate Parse", false)
 		return err
 	}
 

@@ -147,7 +147,7 @@ func (l *LibsService) FindSessionByUniqueId(uniqueId, tenantId string) (*appSess
 
 func (l *LibsService) CreateSession(session *appSession.Session) error {
 	if err := l.db.Create(session).Error; err != nil {
-		return util.HandleAppError(err, "Lib CreateSession", "Create", true)
+		return util.HandleAppError(err, "Lib CreateSession", "Create", false)
 	}
 
 	sessionHistory := appSession.SessionHistory{
@@ -160,7 +160,7 @@ func (l *LibsService) CreateSession(session *appSession.Session) error {
 	}
 
 	if err := l.db.Create(&sessionHistory).Error; err != nil {
-		return util.HandleAppError(err, "Lib CreateSession", "Create", true)
+		return util.HandleAppError(err, "Lib CreateSession", "Create", false)
 	}
 
 	return nil
@@ -168,7 +168,7 @@ func (l *LibsService) CreateSession(session *appSession.Session) error {
 
 func (l *LibsService) UpdateSession(session *appSession.Session) error {
 	if err := l.db.Model(&appSession.Session{}).Where("sid = ?", session.Sid).Updates(session).Error; err != nil {
-		return util.HandleAppError(err, "Lib UpdateSession", "Updates", true)
+		return util.HandleAppError(err, "Lib UpdateSession", "Updates", false)
 	}
 
 	sessionHistory := appSession.SessionHistory{
@@ -181,7 +181,7 @@ func (l *LibsService) UpdateSession(session *appSession.Session) error {
 	}
 
 	if err := l.db.Create(&sessionHistory).Error; err != nil {
-		return util.HandleAppError(err, "Lib UpdateSession", "Create", true)
+		return util.HandleAppError(err, "Lib UpdateSession", "Create", false)
 	}
 
 	return nil
