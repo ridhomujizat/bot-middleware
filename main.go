@@ -145,4 +145,5 @@ func initSubscriber(messagingGeneral messaging.MessagingGeneral, applicationServ
 	whatappSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_WHATSAPP_INITIATE"), false, whatappSubscriber.Process)
 	whatappSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_WHATSAPP_BOT"), false, whatappSubscriber.ProcessBot)
 	whatappSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_WHATSAPP_OUTGOING"), false, whatappSubscriber.ProcessOutgoing)
+	whatappSubscriber.Subscribe("exchange", "routingKey", util.GodotEnv("QUEUE_WHATSAPP_FINISH"), false, whatappSubscriber.ProcessFinish)
 }

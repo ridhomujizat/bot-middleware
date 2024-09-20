@@ -3,6 +3,7 @@ package workerWhatsapp
 import (
 	"bot-middleware/internal/application"
 	"bot-middleware/internal/application/bot/botpress"
+	appSession "bot-middleware/internal/application/session"
 	"bot-middleware/internal/entities"
 	"bot-middleware/internal/pkg/libs"
 	"bot-middleware/internal/pkg/messaging"
@@ -10,6 +11,7 @@ import (
 	"bot-middleware/internal/worker"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -45,7 +47,7 @@ func (l *WhatsappService) Process(body []byte) error {
 
 	result, err := l.application.BotService.GetAndUpdateBotServer()
 	if err != nil {
-		util.HandleAppError(err, "Livechat process", "GetAndUpdateBotServer", false)
+		util.HandleAppError(err, "WA process", "GetAndUpdateBotServer", false)
 		return err
 	}
 
@@ -175,14 +177,6 @@ func (l *WhatsappService) ProcessOutgoing(body []byte) error {
 
 		switch outgoing.Type {
 		case string(botpress.TEXT):
-			outPayload := OutgoingText{
-				RecipientType:    "INDIVIDUAL",
-				MessagingProduct: "WHATSAPP",
-				To:               MetaData.UniqueId,
-				Type:             "TEXT",
-				Text:             Text{Body: outgoing.Text},
-			}
-			response, err = l.libsService.Text(MetaData.AccountId, payload.Incoming.TenantId, outPayload)
 			if err != nil {
 				return fmt.Errorf("failed to send text message: %v", err)
 			}
@@ -302,4 +296,73 @@ func mapChoicesToSections(choices []botpress.Choice) []Rows {
 		sections = append(sections, Rows{Title: title, Description: description, ID: c.Value})
 	}
 	return sections
+}
+
+func (l *WhatsappService) ProcessFinish(body []byte) error {
+	var payload PayloadDTO
+	if err := json.Unmarshal(body, &payload); err != nil {
+		util.HandleAppError(err, "Process Finish WA", "Unmarshal", false)
+		return err
+	}
+
+	BotResponse := payload.BotResponse
+	MetaData := payload.MetaData
+	Incoming := payload.Incoming
+
+	sess, err := l.libsService.FindSessionByUniqueId(MetaData.UniqueId, Incoming.TenantId)
+	if err != nil {
+		util.HandleAppError(err, "WA  Finish", "Get Sess Parse", true)
+		return err
+	}
+
+	incomingTimestamp, err := strconv.ParseInt(MetaData.DateTimestamp, 10, 64)
+	if err != nil {
+		util.HandleAppError(err, "WA Finish", "Timestamp Parse", true)
+		return err
+	}
+	incomingDate := time.Unix(incomingTimestamp, 0)
+
+	// Parse BotResponse.BotDate with the correct layout
+	botDate, err := time.Parse("2006-01-02 15:04:05", BotResponse.BotDate)
+	if err != nil {
+		util.HandleAppError(err, "WA Finish", "BotDate Parse", true)
+		return err
+	}
+
+	session := &appSession.Session{
+		Sid:              MetaData.Sid,
+		TenantId:         Incoming.TenantId,
+		UniqueId:         MetaData.UniqueId,
+		BotPlatform:      "botpress",
+		State:            fmt.Sprintf("%v", BotResponse.State),
+		Stacktrace:       util.JSONstringify(BotResponse.Stacktrace),
+		BotResponse:      util.JSONstringify(BotResponse.Responses),
+		BotURL:           MetaData.BotEndpoint,
+		ChannelSource:    MetaData.ChannelSources,
+		ChannelPlatform:  MetaData.ChannelPlatform,
+		ChannelId:        MetaData.ChannelId,
+		Omnichannel:      "onx",
+		BotDate:          botDate,
+		OutgoingResponse: util.JSONstringify(payload.OutgoingResponse),
+		BotAccount:       MetaData.BotAccount,
+		ChannelAccount:   MetaData.AccountId,
+		IncomingDate:     incomingDate,
+	}
+
+	session.CustMessage = Incoming.Messages[0].Text.Body
+	session.CustName = Incoming.Contacts[0].Profile.Name
+	session.CustMessageType = string(Incoming.Messages[0].Type)
+
+	if sess == nil {
+		if err := l.libsService.CreateSession(session); err != nil {
+			return err
+		}
+	} else {
+		session.Id = sess.Id
+		if err := l.libsService.UpdateSession(session); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
